@@ -15,8 +15,10 @@
     const SCALE_MIN = 0.5;
     const SCALE_MAX = 3.0;
     const SCALE_STEP = 0.1;
-    const SCALE_DEFAULT = 1.0;
-    const BORDER_SIZE_DEFAULT = 3.0;
+    // App defaults (mirror SettingsData::default in config/lib.rs): 150%
+    // scale + thin (1.5) outline, mimicking the old QT Jellyfin Media Player.
+    const SCALE_DEFAULT = 1.5;
+    const BORDER_SIZE_DEFAULT = 1.5;
 
     // Stored as mpv sub-pos (0=top, 100=bottom); the UI works in offset space
     // (0 = default, + raises the subtitles).

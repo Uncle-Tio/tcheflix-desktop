@@ -68,10 +68,12 @@ struct SettingsData {
     sub_bold: bool,
 }
 
-const SUB_SCALE_DEFAULT: f64 = 1.0;
-// mpv's `sub-border-size` default; matching values are "no override" (not
-// seeded at boot, not persisted).
-const SUB_BORDER_SIZE_DEFAULT: f64 = 3.0;
+// Override mpv defaults: 150% scale + thin (1.5) outline, mimicking the
+// old QT-based Jellyfin Media Player. Intentionally differ from mpv's
+// natives (1.0 / 3.0) so boot.rs seeds them (its skip checks compare
+// against mpv's natives, not these) and to_json persists them.
+const SUB_SCALE_DEFAULT: f64 = 1.5;
+const SUB_BORDER_SIZE_DEFAULT: f64 = 1.5;
 // mpv's `sub-pos` default (100 = screen bottom).
 const SUB_POS_DEFAULT: f64 = 100.0;
 
