@@ -7,10 +7,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .and_then(std::path::Path::parent)
         .ok_or("CARGO_MANIFEST_DIR has no grandparent")?;
 
-    // `env!` (not std::env::var) so rustc records the dep and re-runs this
-    // script when the workspace version bumps.
+    // Tchê Flix: the outward-facing version is the FORK's independent version
+    // (src/tcheflix/Cargo.toml), not the upstream workspace one. It flows into
+    // both JFN_APP_VERSION and JFN_APP_VERSION_FULL below, so the appVersion the
+    // Jellyfin server sees, the HTTP user-agent, and the About/logs all report
+    // the fork version. Falls back to the workspace version if the read fails so
+    // the build never breaks. `env!` (not std::env::var) records the workspace
+    // Cargo.toml as a dep so this re-runs when that version bumps too.
     println!("cargo:rerun-if-changed=../Cargo.toml");
-    let version = env!("CARGO_PKG_VERSION");
+    println!("cargo:rerun-if-changed=../tcheflix/Cargo.toml");
+    let version =
+        read_tcheflix_version(repo_root).unwrap_or_else(|| env!("CARGO_PKG_VERSION").to_string());
     println!("cargo:rustc-env=JFN_APP_VERSION={version}");
 
     // VERSION_FULL = "<VERSION>+<git short hash>[-dirty]", but only for
@@ -80,4 +87,26 @@ fn track_git_refs(repo_root: &std::path::Path) {
             repo.common_dir().join(name).display()
         );
     }
+}
+
+/// Read the fork's independent version from `src/tcheflix/Cargo.toml`'s
+/// `[package]` `version = "x.y.z"`. A minimal line scan (no `toml` dep needed):
+/// the package version is the first top-level `version = "..."` in the file,
+/// well before any dependency's inline `version = "..."`. Returns `None` on any
+/// failure so the caller falls back to the workspace version.
+fn read_tcheflix_version(repo_root: &std::path::Path) -> Option<String> {
+    let manifest = repo_root.join("src").join("tcheflix").join("Cargo.toml");
+    let text = std::fs::read_to_string(manifest).ok()?;
+    for line in text.lines() {
+        let Some(rest) = line.trim_start().strip_prefix("version") else {
+            continue;
+        };
+        let Some(rest) = rest.trim_start().strip_prefix('=') else {
+            continue;
+        };
+        let start = rest.find('"')? + 1;
+        let end = rest[start..].find('"')? + start;
+        return Some(rest[start..end].to_string());
+    }
+    None
 }

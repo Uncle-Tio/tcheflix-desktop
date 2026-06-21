@@ -1,60 +1,18 @@
-# Jellyfin Desktop
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="src/tcheflix/assets/tcheflix_banner_light.png">
+    <img alt="Tchê Flix" src="src/tcheflix/assets/tcheflix_banner.png" width="360">
+  </picture>
+</p>
 
-> [!WARNING]
-> This client is still under active development and may have bugs or missing features.
+A **personal, unofficial** fork of [jellyfin-desktop](https://github.com/jellyfin/jellyfin-desktop).
 
-A [Jellyfin](https://jellyfin.org) desktop client built on [CEF](https://github.com/chromiumembedded/cef) and [mpv](https://mpv.io/). A complete rewrite of the previous [Qt-based client](https://github.com/jellyfin-archive/jellyfin-desktop-qt/).
+It exists so I can make whatever changes I want to the client for my own use. It's **not** affiliated with or endorsed by the Jellyfin project. The renaming/re-versioning/rebranding follow Jellyfin's [branding guidelines](https://jellyfin.org/docs/project/branding/) so that every surface makes clear this is a modified, unofficial build.
 
-## Downloads
-### Linux
-- AppImage
-  - [x86_64](https://nightly.link/jellyfin/jellyfin-desktop/workflows/build-linux-appimage/main/linux-appimage-x86_64.zip)
-  - [aarch64](https://nightly.link/jellyfin/jellyfin-desktop/workflows/build-linux-appimage/main/linux-appimage-aarch64.zip)
-- Arch Linux (AUR): [jellyfin-desktop-git](https://aur.archlinux.org/packages/jellyfin-desktop-git)
-- [Flatpak (non-Flathub bundle)](https://nightly.link/jellyfin/jellyfin-desktop/workflows/build-linux-flatpak/main/linux-flatpak-x86_64.zip)
+> [!IMPORTANT]
+> You almost certainly want the **official client** instead: <https://github.com/jellyfin/jellyfin-desktop>.
+> You *can* use this fork, but you *shouldn't* — it's tailored to my preferences, may break at any time, and comes with no support.
 
-### macOS
-- [Apple Silicon](https://nightly.link/jellyfin/jellyfin-desktop/workflows/build-macos/main/macos-arm64.zip)
-- [Intel](https://nightly.link/jellyfin/jellyfin-desktop/workflows/build-macos/main/macos-x86_64.zip)
+## Permission
 
-After installing, remove quarantine: 
-```
-sudo xattr -cr /Applications/Jellyfin\ Desktop.app
-```
-
-### Windows
-- [x64](https://nightly.link/jellyfin/jellyfin-desktop/workflows/build-windows/main/windows-x64.zip)
-- [arm64](https://nightly.link/jellyfin/jellyfin-desktop/workflows/build-windows/main/windows-arm64.zip)
-
-
-## Development
-
-This project uses [just](https://github.com/casey/just) as a command runner.
-
-```
-Available recipes:
-    [package]
-    appimage ...    # [linux] build AppImage
-    flatpak ...     # [linux] build Flatpak bundle
-    dmg             # [macos] build Apple Disk Image (.dmg)
-
-    [maintenance]
-    clean         # Remove build artifacts
-
-    [test]
-    test          # Run tests
-
-    [lint]
-    fmt           # Format workspace
-    fmt-check     # Check formatting
-    clippy        # Run clippy
-    lint          # Lint workspace
-    strict-lint   # Strict lint workspace
-
-    [build]
-    build         # Build the app
-
-    [run]
-    run *args     # Run the app
-    run-mpv *args # Run the mpv CLI
-```
+You're free to read, use, and modify my changes however you like — whether for your own personal use or to send them as pull requests to the official [jellyfin-desktop](https://github.com/jellyfin/jellyfin-desktop) repository. The upstream code is licensed under [GPL-2.0](LICENSE), and these modifications keep the same license.
