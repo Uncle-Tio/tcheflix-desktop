@@ -3,6 +3,7 @@
 pub fn get(name: &str) -> Option<&'static str> {
     Some(match name {
         "native-shim.js" => include_str!("../../web/native-shim.js"),
+        "i18n.js" => include_str!("../../web/i18n.js"),
         "mpv-player-base.js" => include_str!("../../web/mpv-player-base.js"),
         "mpv-video-player.js" => include_str!("../../web/mpv-video-player.js"),
         "mpv-audio-player.js" => include_str!("../../web/mpv-audio-player.js"),

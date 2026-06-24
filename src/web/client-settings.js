@@ -6,6 +6,11 @@
 // dispatch the same events that libraryMenu.js listens on (pageshow via
 // pageClassOn) to update the header.
 (function() {
+    // Localize an English UI string via the i18n shim (injected before us);
+    // passthrough to English if it isn't present. The field labels/help/options
+    // come from jmpInfo.settingsDescriptions, already translated in place by i18n.js.
+    const t = function (s) { return window.jmpI18n ? window.jmpI18n.t(s) : s; };
+
     function dispatchPageEvents(target, isRestored) {
         const detail = {
             detail: { type: null, properties: [], params: {}, isRestored: !!isRestored, options: {} },
@@ -38,7 +43,7 @@
         const page = document.createElement('div');
         page.id = 'clientSettingsPage';
         page.setAttribute('data-role', 'page');
-        page.setAttribute('data-title', 'Client Settings');
+        page.setAttribute('data-title', t('Client Settings'));
         page.setAttribute('data-backbutton', 'true');
         page.className = 'mainAnimatedPage page libraryPage userPreferencesPage noSecondaryNavPage';
         page.style.overflow = 'auto';
@@ -174,7 +179,7 @@
 
         const notice = document.createElement('div');
         notice.className = 'infoBanner';
-        notice.textContent = 'Changes take effect after restarting the application.';
+        notice.textContent = t('Changes take effect after restarting the application.');
         form.appendChild(notice);
 
         for (const sectionOrder of jmpInfo.sections.sort((a, b) => a.order - b.order)) {
@@ -189,7 +194,7 @@
 
             const sectionHeader = document.createElement('h2');
             sectionHeader.className = 'sectionTitle';
-            sectionHeader.textContent = section.charAt(0).toUpperCase() + section.slice(1);
+            sectionHeader.textContent = t(section.charAt(0).toUpperCase() + section.slice(1));
             group.appendChild(sectionHeader);
 
             for (const setting of descriptions) {
@@ -310,12 +315,12 @@
 
             const sectionHeader = document.createElement('h2');
             sectionHeader.className = 'sectionTitle';
-            sectionHeader.textContent = 'MPV config';
+            sectionHeader.textContent = t('MPV config');
             group.appendChild(sectionHeader);
 
             const btn = document.createElement('button');
             btn.className = 'raised button-cancel block emby-button';
-            btn.textContent = 'Open mpv config directory';
+            btn.textContent = t('Open mpv config directory');
             btn.type = 'button';
             btn.addEventListener('click', () => {
                 if (window.jmpNative && window.jmpNative.openConfigDir) {
@@ -334,12 +339,12 @@
 
             const sectionHeader = document.createElement('h2');
             sectionHeader.className = 'sectionTitle';
-            sectionHeader.textContent = 'Server';
+            sectionHeader.textContent = t('Server');
             group.appendChild(sectionHeader);
 
             const btn = document.createElement('button');
             btn.className = 'raised button-cancel block emby-button';
-            btn.textContent = 'Reset Saved Server';
+            btn.textContent = t('Reset Saved Server');
             btn.addEventListener('click', () => {
                 jmpInfo.settings.main.userWebClient = '';
                 if (window.jmpNative && window.jmpNative.saveServerUrl) {

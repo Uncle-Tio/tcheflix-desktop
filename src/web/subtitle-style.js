@@ -11,6 +11,10 @@
 (function () {
     const HOST_TAG = 'jmp-subtitle-style';
 
+    // Localize an English UI string via the i18n shim (injected before us);
+    // passthrough to English if it isn't present for any reason.
+    const t = function (s) { return window.jmpI18n ? window.jmpI18n.t(s) : s; };
+
     // Subtitle size stepper bounds (the sub-scale multiplier).
     const SCALE_MIN = 0.5;
     const SCALE_MAX = 3.0;
@@ -28,20 +32,20 @@
     const POS_OFFSET_STEP = 5;
 
     const COLOR_OPTIONS = [
-        { value: '#FFFFFFFF', title: 'White' },
-        { value: '#FFFFFF00', title: 'Yellow' },
-        { value: '#FF000000', title: 'Black' },
-        { value: '#FF808080', title: 'Gray' }
+        { value: '#FFFFFFFF', title: t('White') },
+        { value: '#FFFFFF00', title: t('Yellow') },
+        { value: '#FF000000', title: t('Black') },
+        { value: '#FF808080', title: t('Gray') }
     ];
     const BORDER_SIZE_OPTIONS = [
-        { value: '0', title: 'Off' },
-        { value: '1.5', title: 'Thin' },
-        { value: '3', title: 'Medium' },
-        { value: '5', title: 'Thick' }
+        { value: '0', title: t('Off') },
+        { value: '1.5', title: t('Thin') },
+        { value: '3', title: t('Medium') },
+        { value: '5', title: t('Thick') }
     ];
     const BOLD_OPTIONS = [
-        { value: 'false', title: 'Normal' },
-        { value: 'true', title: 'Bold' }
+        { value: 'false', title: t('Normal') },
+        { value: 'true', title: t('Bold') }
     ];
 
     let open = false;
@@ -277,12 +281,12 @@
         header.className = 'header';
         const title = document.createElement('div');
         title.className = 'title';
-        title.textContent = 'Subtitle styling';
+        title.textContent = t('Subtitle styling');
         // Reset only this panel's controls; the font lives in Client Settings.
         const resetBtn = document.createElement('button');
         resetBtn.className = 'reset';
-        resetBtn.setAttribute('aria-label', 'Reset to defaults');
-        resetBtn.title = 'Reset to defaults';
+        resetBtn.setAttribute('aria-label', t('Reset to defaults'));
+        resetBtn.title = t('Reset to defaults');
         resetBtn.textContent = '↺';
         resetBtn.addEventListener('click', function () {
             setSub('subScale', SCALE_DEFAULT);
@@ -295,52 +299,52 @@
         });
         const closeBtn = document.createElement('button');
         closeBtn.className = 'close';
-        closeBtn.setAttribute('aria-label', 'Close');
-        closeBtn.title = 'Close';
+        closeBtn.setAttribute('aria-label', t('Close'));
+        closeBtn.title = t('Close');
         closeBtn.textContent = '✕';
         closeBtn.addEventListener('click', function () { closePanel(); });
         header.append(title, resetBtn, closeBtn);
         panel.appendChild(header);
 
         // Size — stepper (percentage of the sub-scale multiplier).
-        const sizeRow = makeRow('Size');
+        const sizeRow = makeRow(t('Size'));
         sizeRow.appendChild(buildStepper({
             get: function () { return curNumber('subScale', SCALE_DEFAULT); },
             set: function (v) { setSub('subScale', v); },
             min: SCALE_MIN, max: SCALE_MAX, step: SCALE_STEP,
             fmt: function (v) { return Math.round(v * 100) + '%'; },
-            decLabel: 'Smaller', incLabel: 'Larger'
+            decLabel: t('Smaller'), incLabel: t('Larger')
         }));
         panel.appendChild(sizeRow);
 
         // Vertical position — stepper in offset space (+ raises the subtitles).
-        const posRow = makeRow('Vertical position');
+        const posRow = makeRow(t('Vertical position'));
         posRow.appendChild(buildStepper({
             get: function () { return POS_DEFAULT - curNumber('subPos', POS_DEFAULT); },
             set: function (off) { setSub('subPos', POS_DEFAULT - off); },
             min: POS_OFFSET_MIN, max: POS_OFFSET_MAX, step: POS_OFFSET_STEP,
             fmt: function (off) { return off > 0 ? '+' + off : String(off); },
-            decLabel: 'Lower', incLabel: 'Higher'
+            decLabel: t('Lower'), incLabel: t('Higher')
         }));
         panel.appendChild(posRow);
 
-        const boldRow = makeRow('Bold');
+        const boldRow = makeRow(t('Bold'));
         boldEl = buildSeg('subBold', BOLD_OPTIONS);
         boldRow.appendChild(boldEl);
         panel.appendChild(boldRow);
 
-        const colorRow = makeRow('Color');
+        const colorRow = makeRow(t('Color'));
         colorEl = buildSwatchRow('subColor', COLOR_OPTIONS);
         colorRow.appendChild(colorEl);
         panel.appendChild(colorRow);
 
-        const outlineRow = makeRow('Outline');
+        const outlineRow = makeRow(t('Outline'));
         borderSizeEl = buildSeg('subBorderSize', BORDER_SIZE_OPTIONS);
         outlineRow.appendChild(borderSizeEl);
         panel.appendChild(outlineRow);
 
         // Outline color — same swatches as the text color.
-        const outlineColorRow = makeRow('Outline color');
+        const outlineColorRow = makeRow(t('Outline color'));
         borderColorEl = buildSwatchRow('subBorderColor', COLOR_OPTIONS);
         outlineColorRow.appendChild(borderColorEl);
         panel.appendChild(outlineColorRow);
@@ -429,8 +433,8 @@
 
         const icon = document.createElement('button');
         icon.type = 'button';
-        icon.setAttribute('aria-label', 'Subtitle style');
-        icon.title = 'Subtitle style';
+        icon.setAttribute('aria-label', t('Subtitle style'));
+        icon.title = t('Subtitle style');
         // Material icon + label. jellyfin-web always loads the Material Icons
         // font (its whole OSD uses it); if it ever fails, the label still reads.
         const glyph = document.createElement('span');
@@ -438,7 +442,7 @@
         glyph.textContent = 'text_format';
         glyph.style.cssText = 'font-size:18px;line-height:1';
         const label = document.createElement('span');
-        label.textContent = 'Subtitle style';
+        label.textContent = t('Subtitle style');
         icon.append(glyph, label);
         // Inline styles: this element lives in jellyfin's DOM, not our shadow
         // root, so our scoped CSS doesn't reach it.
