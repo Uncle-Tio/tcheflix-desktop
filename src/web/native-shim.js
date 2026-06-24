@@ -85,8 +85,9 @@
         sections: [
             { key: 'playback', order: 0 },
             { key: 'audio', order: 1 },
-            { key: 'transcode', order: 2 },
-            { key: 'advanced', order: 3 }
+            { key: 'subtitles', order: 2 },
+            { key: 'transcode', order: 3 },
+            { key: 'advanced', order: 4 }
         ],
         settings: {
             main: { enableMPV: true, fullscreen: false, userWebClient: '__SERVER_URL__' },
@@ -97,6 +98,16 @@
                 audioPassthrough: _savedSettings.audioPassthrough || '',
                 audioExclusive: _savedSettings.audioExclusive || false,
                 audioChannels: _savedSettings.audioChannels || ''
+            },
+            subtitles: {
+                subScale: _savedSettings.subScale || 1,
+                subFont: _savedSettings.subFont || '',
+                subColor: _savedSettings.subColor || '',
+                // Nullish coalescing: 0 (Off) is a valid border size, so `|| 3` would be wrong.
+                subBorderSize: _savedSettings.subBorderSize ?? 3,
+                subBorderColor: _savedSettings.subBorderColor || '',
+                subPos: _savedSettings.subPos ?? 100,
+                subBold: !!_savedSettings.subBold
             },
             transcode: {
                 forceTranscoding: !!_savedSettings.forceTranscoding
@@ -122,6 +133,12 @@
                     { value: '5.1', title: '5.1 Surround' },
                     { value: '7.1', title: '7.1 Surround' }
                 ]}
+            ],
+            // Only the font lives here (can't be previewed meaningfully); size,
+            // color and outline are adjusted in-player via the "Subtitle style"
+            // button in the Subtitles menu, where changes preview live.
+            subtitles: [
+                { key: 'subFont', displayName: 'Subtitle Font', help: 'Font family used for subtitles. Leave empty for the default. The font must be installed on this system. Size, color and outline are adjusted from the "Subtitle style" button in the player\'s Subtitles menu.', inputType: 'text', placeholder: 'e.g. Arial' }
             ],
             transcode: [
                 { key: 'forceTranscoding', displayName: 'Force Transcoding', help: 'Always request a transcoded stream from the server, even when direct play would work.' }

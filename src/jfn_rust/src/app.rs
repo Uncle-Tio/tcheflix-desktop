@@ -144,6 +144,13 @@ struct StartupOptions {
     log_file: Option<String>,
     disable_gpu_compositing: bool,
     remote_debugging_port: c_int,
+    sub_scale: f64,
+    sub_font: String,
+    sub_color: String,
+    sub_border_size: f64,
+    sub_border_color: String,
+    sub_pos: f64,
+    sub_bold: bool,
 }
 
 fn resolve_startup_options(cli: &cli::Cli) -> StartupOptions {
@@ -208,6 +215,13 @@ fn resolve_startup_options(cli: &cli::Cli) -> StartupOptions {
         log_file,
         disable_gpu_compositing,
         remote_debugging_port,
+        sub_scale: jfn_config::sub_scale(),
+        sub_font: jfn_config::sub_font(),
+        sub_color: jfn_config::sub_color(),
+        sub_border_size: jfn_config::sub_border_size(),
+        sub_border_color: jfn_config::sub_border_color(),
+        sub_pos: jfn_config::sub_pos(),
+        sub_bold: jfn_config::sub_bold(),
     }
 }
 
@@ -221,6 +235,13 @@ struct MpvInitOptions<'a> {
     audio_exclusive: bool,
     audio_channels: &'a str,
     mpv_log_level: &'a str,
+    sub_scale: f64,
+    sub_font: &'a str,
+    sub_color: &'a str,
+    sub_border_size: f64,
+    sub_border_color: &'a str,
+    sub_pos: f64,
+    sub_bold: bool,
 }
 
 fn init_mpv_handle(opts: MpvInitOptions<'_>) -> *mut jfn_mpv::sys::mpv_handle {
@@ -230,6 +251,9 @@ fn init_mpv_handle(opts: MpvInitOptions<'_>) -> *mut jfn_mpv::sys::mpv_handle {
     let passthrough_c = cs(opts.audio_passthrough);
     let channels_c = cs(opts.audio_channels);
     let mpv_log_level_c = cs(opts.mpv_log_level);
+    let sub_font_c = cs(opts.sub_font);
+    let sub_color_c = cs(opts.sub_color);
+    let sub_border_color_c = cs(opts.sub_border_color);
     let boot = jfn_mpv::boot::JfnMpvBoot {
         display_backend: opts.backend_byte,
         hwdec: hwdec_c.as_ptr(),
@@ -250,6 +274,25 @@ fn init_mpv_handle(opts: MpvInitOptions<'_>) -> *mut jfn_mpv::sys::mpv_handle {
         window_maximized_at_boot: opts.boot_window_max,
         mpv_log_level: mpv_log_level_c.as_ptr(),
         client_side_decorations: jfn_config::client_side_decorations(),
+        sub_scale: opts.sub_scale,
+        sub_font: if opts.sub_font.is_empty() {
+            ptr::null()
+        } else {
+            sub_font_c.as_ptr()
+        },
+        sub_color: if opts.sub_color.is_empty() {
+            ptr::null()
+        } else {
+            sub_color_c.as_ptr()
+        },
+        sub_border_size: opts.sub_border_size,
+        sub_border_color: if opts.sub_border_color.is_empty() {
+            ptr::null()
+        } else {
+            sub_border_color_c.as_ptr()
+        },
+        sub_pos: opts.sub_pos,
+        sub_bold: opts.sub_bold,
     };
     unsafe { jfn_mpv::boot::jfn_mpv_handle_init(&boot as *const _) }
 }
@@ -624,6 +667,13 @@ pub fn jfn_app_main() -> c_int {
         audio_exclusive: opts.audio_exclusive,
         audio_channels: &opts.audio_channels,
         mpv_log_level,
+        sub_scale: opts.sub_scale,
+        sub_font: &opts.sub_font,
+        sub_color: &opts.sub_color,
+        sub_border_size: opts.sub_border_size,
+        sub_border_color: &opts.sub_border_color,
+        sub_pos: opts.sub_pos,
+        sub_bold: opts.sub_bold,
     });
     if raw.is_null() {
         tracing::error!(target: "Main", "mpv handle init failed");

@@ -59,7 +59,21 @@ struct SettingsData {
     force_transcoding: bool,
     window_decorations: Option<WindowDecorations>,
     hide_scrollbar: bool,
+    sub_scale: f64,
+    sub_font: String,
+    sub_color: String,
+    sub_border_size: f64,
+    sub_border_color: String,
+    sub_pos: f64,
+    sub_bold: bool,
 }
+
+const SUB_SCALE_DEFAULT: f64 = 1.0;
+// mpv's `sub-border-size` default; matching values are "no override" (not
+// seeded at boot, not persisted).
+const SUB_BORDER_SIZE_DEFAULT: f64 = 3.0;
+// mpv's `sub-pos` default (100 = screen bottom).
+const SUB_POS_DEFAULT: f64 = 100.0;
 
 impl Default for SettingsData {
     fn default() -> Self {
@@ -77,6 +91,13 @@ impl Default for SettingsData {
             force_transcoding: false,
             window_decorations: None,
             hide_scrollbar: true,
+            sub_scale: SUB_SCALE_DEFAULT,
+            sub_font: String::new(),
+            sub_color: String::new(),
+            sub_border_size: SUB_BORDER_SIZE_DEFAULT,
+            sub_border_color: String::new(),
+            sub_pos: SUB_POS_DEFAULT,
+            sub_bold: false,
         }
     }
 }
@@ -154,6 +175,27 @@ impl SettingsData {
         if let Some(b) = v.get("hideScrollbar").and_then(Value::as_bool) {
             self.hide_scrollbar = b;
         }
+        if let Some(n) = v.get("subScale").and_then(Value::as_f64) {
+            self.sub_scale = n;
+        }
+        if let Some(s) = v.get("subFont").and_then(Value::as_str) {
+            self.sub_font = s.into();
+        }
+        if let Some(s) = v.get("subColor").and_then(Value::as_str) {
+            self.sub_color = s.into();
+        }
+        if let Some(n) = v.get("subBorderSize").and_then(Value::as_f64) {
+            self.sub_border_size = n;
+        }
+        if let Some(s) = v.get("subBorderColor").and_then(Value::as_str) {
+            self.sub_border_color = s.into();
+        }
+        if let Some(n) = v.get("subPos").and_then(Value::as_f64) {
+            self.sub_pos = n;
+        }
+        if let Some(b) = v.get("subBold").and_then(Value::as_bool) {
+            self.sub_bold = b;
+        }
     }
 
     fn to_json(&self) -> Value {
@@ -220,6 +262,30 @@ impl SettingsData {
         if !self.hide_scrollbar {
             o.insert("hideScrollbar".into(), Value::Bool(false));
         }
+        if self.sub_scale != SUB_SCALE_DEFAULT {
+            o.insert("subScale".into(), json!(self.sub_scale));
+        }
+        if !self.sub_font.is_empty() {
+            o.insert("subFont".into(), Value::String(self.sub_font.clone()));
+        }
+        if !self.sub_color.is_empty() {
+            o.insert("subColor".into(), Value::String(self.sub_color.clone()));
+        }
+        if self.sub_border_size != SUB_BORDER_SIZE_DEFAULT {
+            o.insert("subBorderSize".into(), json!(self.sub_border_size));
+        }
+        if !self.sub_border_color.is_empty() {
+            o.insert(
+                "subBorderColor".into(),
+                Value::String(self.sub_border_color.clone()),
+            );
+        }
+        if self.sub_pos != SUB_POS_DEFAULT {
+            o.insert("subPos".into(), json!(self.sub_pos));
+        }
+        if self.sub_bold {
+            o.insert("subBold".into(), Value::Bool(true));
+        }
         if !self.device_name.is_empty() {
             o.insert("deviceName".into(), Value::String(self.device_name.clone()));
         }
@@ -262,6 +328,22 @@ impl SettingsData {
         // windowDecorations is absent: resolving its effective value needs the
         // Platform default, unavailable in the CEF renderer where cli_json runs.
         o.insert("hideScrollbar".into(), Value::Bool(self.hide_scrollbar));
+        o.insert("subScale".into(), json!(self.sub_scale));
+        if !self.sub_font.is_empty() {
+            o.insert("subFont".into(), Value::String(self.sub_font.clone()));
+        }
+        if !self.sub_color.is_empty() {
+            o.insert("subColor".into(), Value::String(self.sub_color.clone()));
+        }
+        o.insert("subBorderSize".into(), json!(self.sub_border_size));
+        if !self.sub_border_color.is_empty() {
+            o.insert(
+                "subBorderColor".into(),
+                Value::String(self.sub_border_color.clone()),
+            );
+        }
+        o.insert("subPos".into(), json!(self.sub_pos));
+        o.insert("subBold".into(), Value::Bool(self.sub_bold));
         if !self.device_name.is_empty() {
             o.insert("deviceName".into(), Value::String(self.device_name.clone()));
         }
@@ -472,11 +554,28 @@ macro_rules! bool_accessors {
     };
 }
 
+macro_rules! f64_accessors {
+    ($getter:ident, $setter:ident, $field:ident) => {
+        pub fn $getter() -> f64 {
+            state().lock().data.$field
+        }
+        pub fn $setter(v: f64) {
+            state().lock().data.$field = v;
+        }
+    };
+}
+
 string_accessors!(server_url, set_server_url, server_url);
 string_accessors!(hwdec, set_hwdec, hwdec);
 string_accessors!(audio_passthrough, set_audio_passthrough, audio_passthrough);
 string_accessors!(audio_channels, set_audio_channels, audio_channels);
 string_accessors!(log_level, set_log_level, log_level);
+string_accessors!(sub_font, set_sub_font, sub_font);
+string_accessors!(sub_color, set_sub_color, sub_color);
+string_accessors!(sub_border_color, set_sub_border_color, sub_border_color);
+f64_accessors!(sub_scale, set_sub_scale, sub_scale);
+f64_accessors!(sub_border_size, set_sub_border_size, sub_border_size);
+f64_accessors!(sub_pos, set_sub_pos, sub_pos);
 
 pub fn device_name() -> String {
     state().lock().data.device_name.clone()
@@ -547,6 +646,7 @@ pub fn titlebar_theme_color() -> bool {
     window_decorations_mode() == WindowDecorations::ServerThemed
 }
 bool_accessors!(hide_scrollbar, set_hide_scrollbar, hide_scrollbar);
+bool_accessors!(sub_bold, set_sub_bold, sub_bold);
 
 pub fn window_geometry() -> JfnWindowGeometry {
     state().lock().data.window

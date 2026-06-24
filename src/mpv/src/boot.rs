@@ -60,6 +60,20 @@ pub struct JfnMpvBoot {
     /// the app's own client-side decorations don't stack under a compositor
     /// titlebar (e.g. KDE). No effect on X11 (WM draws decorations).
     pub client_side_decorations: bool,
+    /// Subtitle text scale (`sub-scale`); `1.0` (default) is skipped.
+    pub sub_scale: f64,
+    /// Subtitle font family (`sub-font`); null/empty leaves the mpv default.
+    pub sub_font: *const c_char,
+    /// Subtitle text color (`sub-color`); null/empty leaves the mpv default.
+    pub sub_color: *const c_char,
+    /// Subtitle outline thickness (`sub-border-size`); `3.0` (default) is skipped.
+    pub sub_border_size: f64,
+    /// Subtitle outline color (`sub-border-color`); null/empty leaves the default.
+    pub sub_border_color: *const c_char,
+    /// Subtitle vertical position (`sub-pos`, 0=top, 100=bottom); `100.0` skipped.
+    pub sub_pos: f64,
+    /// Subtitle bold text (`sub-bold`); `false` (default) is skipped.
+    pub sub_bold: bool,
 }
 
 /// Owns the Handle for the rest of the process. `mpv_terminate_destroy`
@@ -201,6 +215,36 @@ fn apply_boot_options(handle: &Handle, boot: &JfnMpvBoot) -> crate::error::Resul
         && !ch.is_empty()
     {
         set("audio-channels", &ch)?;
+    }
+
+    // Seed saved subtitle styling so it applies to the first playback (it's
+    // also applied live afterwards via the `sub*` setting keys).
+    if boot.sub_scale != 1.0 {
+        set("sub-scale", &boot.sub_scale.to_string())?;
+    }
+    if let Some(font) = unsafe { cstr_opt(boot.sub_font) }
+        && !font.is_empty()
+    {
+        set("sub-font", &font)?;
+    }
+    if let Some(color) = unsafe { cstr_opt(boot.sub_color) }
+        && !color.is_empty()
+    {
+        set("sub-color", &color)?;
+    }
+    if boot.sub_border_size != 3.0 {
+        set("sub-border-size", &boot.sub_border_size.to_string())?;
+    }
+    if let Some(border_color) = unsafe { cstr_opt(boot.sub_border_color) }
+        && !border_color.is_empty()
+    {
+        set("sub-border-color", &border_color)?;
+    }
+    if boot.sub_pos != 100.0 {
+        set("sub-pos", &boot.sub_pos.to_string())?;
+    }
+    if boot.sub_bold {
+        set_flag("sub-bold", true)?;
     }
     Ok(())
 }
