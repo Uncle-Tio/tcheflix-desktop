@@ -13,7 +13,6 @@ third_party/*
 
 # Local environment
 .env
-Manual.md
 
 # Project-scoped MCP
 .mcp.json
@@ -23,3 +22,7 @@ Manual.md
 .idea/
 *.swp
 .cache/
+
+# Not necessary to track
+.claude
+Manual.md

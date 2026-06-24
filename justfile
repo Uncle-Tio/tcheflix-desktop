@@ -7,6 +7,7 @@ export JFN_MPV_INCLUDE_DIR := "third_party/mpv/include"
 import 'dev/linux/linux.just'
 import 'dev/macos/macos.just'
 import 'dev/windows/windows.just'
+import 'dev/tcheflix/tcheflix.just'
 
 # List recipes
 [private]

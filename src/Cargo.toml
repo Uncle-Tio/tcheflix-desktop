@@ -19,6 +19,7 @@ members = [
     "paths",
     "platform_abi",
     "playback",
+    "tcheflix",
     "wake_event",
     "wayland",
     "windows",

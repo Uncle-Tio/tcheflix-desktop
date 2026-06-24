@@ -935,6 +935,11 @@ unsafe fn run_with_cef(ba: &BootArgs, mw: c_int, mh: c_int) -> c_int {
     }
     tracing::info!(target: "Main", "Main browser loaded");
 
+    // Tchê Flix: kick off the transparent background update check now that the
+    // browser/registry are live. Fork-owned, Windows-only; see crate::updater.
+    #[cfg(target_os = "windows")]
+    crate::updater::start();
+
     tracing::info!(target: "Main", "[FLOW] Running — about to enter run_main_loop");
 
     // 15. Park the main thread until the manager has closed + drained every

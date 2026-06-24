@@ -1,0 +1,26 @@
+# Tchê Flix fork-owned crate: self-contained Windows auto-updater.
+#
+# Versioning is INDEPENDENT of the workspace (`3.0.0-dev`): this crate carries
+# its own `version`, which is the Tchê Flix release version compared against the
+# GitHub Releases of Uncle-Tio/tcheflix-desktop. Bump this `version` + tag the
+# repo (`v<version>`) to ship a release.
+[package]
+name = "tcheflix"
+version = "0.1.0"
+edition.workspace = true
+publish = false
+
+[lib]
+name = "tcheflix"
+crate-type = ["rlib"]
+
+[dependencies]
+ureq = "3"
+semver = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json.workspace = true
+tracing.workspace = true
+jfn-paths = { path = "../paths" }
+
+[lints]
+workspace = true

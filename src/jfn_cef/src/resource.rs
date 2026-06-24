@@ -47,6 +47,8 @@ static RESOURCES: &[(&str, Embedded)] = &[
     embedded!("overlay.html", "text/html"),
     embedded!("overlay.js", "application/javascript"),
     embedded!("overlay.lang.js", "application/javascript"),
+    embedded!("update.html", "text/html"),
+    embedded!("update.js", "application/javascript"),
 ];
 
 fn lookup(url_path: &str) -> Option<&'static Embedded> {
@@ -82,6 +84,38 @@ fn about_js_payload() -> Vec<u8> {
     let static_body = RESOURCES
         .iter()
         .find(|(n, _)| *n == "about.js")
+        .map(|(_, r)| r.bytes)
+        .unwrap_or(&[]);
+
+    let mut out = Vec::with_capacity(prefix.len() + static_body.len());
+    out.extend_from_slice(prefix.as_bytes());
+    out.extend_from_slice(static_body);
+    out
+}
+
+// `var _updateData = {...}` prefixed to update.js so the update dialog paints
+// its initial state (version, changelog, and any progress/ready that already
+// arrived) without waiting on IPC. Live updates refine it via exec_js.
+fn update_js_payload() -> Vec<u8> {
+    use serde_json::json;
+
+    let data = match crate::business_update::current_update_data() {
+        Some(d) => json!({
+            "current": d.current,
+            "version": d.version,
+            "notes": d.notes,
+            "ready": d.ready,
+            "progress": d.progress,
+        }),
+        None => {
+            json!({ "current": "", "version": "", "notes": "", "ready": false, "progress": -1 })
+        }
+    };
+    let prefix = format!("var _updateData = {data};\n");
+
+    let static_body = RESOURCES
+        .iter()
+        .find(|(n, _)| *n == "update.js")
         .map(|(_, r)| r.bytes)
         .unwrap_or(&[]);
 
@@ -139,6 +173,8 @@ wrap_scheme_handler_factory! {
                 (theme_css(), "text/css")
             } else if url_path == "resources/about.js" {
                 (about_js_payload(), "application/javascript")
+            } else if url_path == "resources/update.js" {
+                (update_js_payload(), "application/javascript")
             } else if let Some(r) = lookup(&url_path) {
                 (r.bytes.to_vec(), r.mime)
             } else {

@@ -56,6 +56,8 @@ pub(crate) enum NativeFunction {
     CancelServerConnectivity,
     AboutOpenPath,
     AboutDismiss,
+    UpdateApply,
+    UpdateLater,
     WindowMinimize,
     WindowToggleMaximize,
     WindowClose,
@@ -106,6 +108,8 @@ impl NativeFunction {
             "cancelServerConnectivity" => Self::CancelServerConnectivity,
             "aboutOpenPath" => Self::AboutOpenPath,
             "aboutDismiss" => Self::AboutDismiss,
+            "updateApply" => Self::UpdateApply,
+            "updateLater" => Self::UpdateLater,
             "windowMinimize" => Self::WindowMinimize,
             "windowToggleMaximize" => Self::WindowToggleMaximize,
             "windowClose" => Self::WindowClose,
@@ -157,6 +161,8 @@ impl NativeFunction {
             Self::CancelServerConnectivity => "cancelServerConnectivity",
             Self::AboutOpenPath => "aboutOpenPath",
             Self::AboutDismiss => "aboutDismiss",
+            Self::UpdateApply => "updateApply",
+            Self::UpdateLater => "updateLater",
             Self::WindowMinimize => "windowMinimize",
             Self::WindowToggleMaximize => "windowToggleMaximize",
             Self::WindowClose => "windowClose",
@@ -281,6 +287,9 @@ const OVERLAY_FUNCTIONS: &[NativeFunction] = &[
 
 const ABOUT_FUNCTIONS: &[NativeFunction] =
     &[NativeFunction::AboutOpenPath, NativeFunction::AboutDismiss];
+
+const UPDATE_FUNCTIONS: &[NativeFunction] =
+    &[NativeFunction::UpdateApply, NativeFunction::UpdateLater];
 
 const WINDOW_FUNCTIONS: &[NativeFunction] = &[
     NativeFunction::WindowMinimize,
@@ -574,6 +583,14 @@ pub(crate) fn build_for_kind(
         )),
         "about" => Some(build_extra_info(
             ABOUT_FUNCTIONS,
+            &[],
+            add_ctx_menu,
+            true,
+            shared_textures_enabled,
+            ctx_menu,
+        )),
+        "update" => Some(build_extra_info(
+            UPDATE_FUNCTIONS,
             &[],
             add_ctx_menu,
             true,

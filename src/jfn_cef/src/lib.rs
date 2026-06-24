@@ -7,6 +7,7 @@ pub mod browsers;
 pub mod business_about;
 mod business_common;
 pub mod business_overlay;
+pub mod business_update;
 pub mod business_web;
 pub mod client;
 mod client_impl;

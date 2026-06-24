@@ -41,6 +41,7 @@ jfn-macos = { path = "../macos" }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 jfn-windows = { path = "../windows" }
+tcheflix = { path = "../tcheflix" }
 
 [target.'cfg(target_os = "windows")'.build-dependencies]
 embed-resource = "3"

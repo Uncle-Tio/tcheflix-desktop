@@ -1,0 +1,117 @@
+name: tcheflix-release
+
+# Builds the Windows (x64) Tchê Flix installer and attaches it to a release.
+#
+# Primary trigger: you publish a GitHub Release whose tag is `v<version>` and
+# whose body is the changelog (the in-app update dialog shows that body 1:1).
+# This workflow then builds, compiles the Inno Setup installer, and uploads
+# `TcheFlixSetup-<version>.exe` as a release asset. The installed version is the
+# `tcheflix` crate's own version (independent of the upstream workspace version);
+# a guard fails the build if the tag and that version disagree.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing release tag to build/attach (e.g. v1.2.0)"
+        required: true
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+    env:
+      MSYSTEM: CLANG64
+      TRIPLE: x86_64-pc-windows-msvc
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Resolve tag + version (fail fast on mismatch)
+        id: meta
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "release") {
+            $tag = "${{ github.event.release.tag_name }}"
+          } else {
+            $tag = "${{ github.event.inputs.tag }}"
+          }
+          $manifest = "src/tcheflix/Cargo.toml"
+          $m = Select-String -Path $manifest -Pattern '^\s*version\s*=\s*"([^"]+)"' | Select-Object -First 1
+          if (-not $m) { throw "could not read tcheflix version from $manifest" }
+          $ver = $m.Matches[0].Groups[1].Value
+          if ($tag -ne "v$ver") {
+            throw "release tag '$tag' != 'v$ver' — bump src/tcheflix/Cargo.toml or fix the tag"
+          }
+          "tag=$tag"  | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "ver=$ver"  | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "Building Tchê Flix $tag"
+
+      - uses: ./.github/actions/setup-cef
+        with:
+          platform: ${{ github.workflow }}-x64
+
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: CLANG64
+          install: >-
+            mingw-w64-clang-x86_64-cc
+            mingw-w64-clang-x86_64-clang
+            mingw-w64-clang-x86_64-meson
+            mingw-w64-clang-x86_64-pkgconf
+            mingw-w64-clang-x86_64-ffmpeg
+            mingw-w64-clang-x86_64-libplacebo
+            mingw-w64-clang-x86_64-libass
+            mingw-w64-clang-x86_64-vulkan-headers
+            mingw-w64-clang-x86_64-vulkan-loader
+            mingw-w64-clang-x86_64-shaderc
+            mingw-w64-clang-x86_64-spirv-cross
+            mingw-w64-clang-x86_64-llvm
+
+      - name: Build mpv from source
+        shell: pwsh
+        run: dev\windows\build_mpv_source.ps1 -Arch x64 -Force
+
+      - name: Build + stage install tree
+        shell: cmd
+        env:
+          LIBCLANG_PATH: C:\msys64\${{ env.MSYSTEM }}\bin
+          MSYS_BIN: C:\msys64\${{ env.MSYSTEM }}\bin
+          BINDGEN_EXTRA_CLANG_ARGS: --target=${{ env.TRIPLE }}
+        run: |
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+          set "PATH=%PATH%;%MSYS_BIN%"
+          cargo xtask install --external-mpv "%CD%\third_party\mpv-install" --prefix build/install
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup --no-progress -y
+
+      - name: Compile installer
+        shell: pwsh
+        run: |
+          $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          & $iscc "/DAppVer=${{ steps.meta.outputs.ver }}" dev\windows\installer.iss
+          if ($LASTEXITCODE -ne 0) { throw "ISCC failed" }
+
+      - name: Upload installer to release
+        if: github.event_name == 'release'
+        shell: pwsh
+        run: |
+          gh release upload "${{ steps.meta.outputs.tag }}" `
+            "dist/TcheFlixSetup-${{ steps.meta.outputs.ver }}.exe" --clobber
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: TcheFlixSetup-${{ steps.meta.outputs.ver }}
+          path: dist/TcheFlixSetup-*.exe

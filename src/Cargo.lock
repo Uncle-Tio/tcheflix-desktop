@@ -2458,6 +2458,7 @@ dependencies = [
  "libc",
  "parking_lot",
  "serde_json",
+ "tcheflix",
  "tracing",
  "uuid",
 ]
@@ -3987,6 +3988,18 @@ dependencies = [
  "filetime",
  "libc",
  "xattr",
+]
+
+[[package]]
+name = "tcheflix"
+version = "0.1.0"
+dependencies = [
+ "jfn-paths",
+ "semver",
+ "serde",
+ "serde_json",
+ "tracing",
+ "ureq",
 ]
 
 [[package]]
