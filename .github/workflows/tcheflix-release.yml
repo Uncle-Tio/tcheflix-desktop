@@ -18,6 +18,12 @@ on:
         description: "Existing release tag to build/attach (e.g. v1.2.0)"
         required: true
 
+# The "Upload installer to release" step uses gh to attach the installer as a
+# release asset, which needs write access to repository contents. Declared here
+# so it works regardless of the repo's default (read-only) GITHUB_TOKEN setting.
+permissions:
+  contents: write
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -88,7 +94,8 @@ jobs:
           MSYS_BIN: C:\msys64\${{ env.MSYSTEM }}\bin
           BINDGEN_EXTRA_CLANG_ARGS: --target=${{ env.TRIPLE }}
         run: |
-          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+          for /f "usebackq delims=" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath`) do set "VSINSTALL=%%i"
+          call "%VSINSTALL%\VC\Auxiliary\Build\vcvarsall.bat" x64 || exit /b 1
           set "PATH=%PATH%;%MSYS_BIN%"
           cargo xtask install --external-mpv "%CD%\third_party\mpv-install" --prefix build/install
 
@@ -111,6 +118,7 @@ jobs:
             "dist/TcheFlixSetup-${{ steps.meta.outputs.ver }}.exe" --clobber
 
       - name: Upload build artifact
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: TcheFlixSetup-${{ steps.meta.outputs.ver }}
