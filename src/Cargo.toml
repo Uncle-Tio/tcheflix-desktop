@@ -21,6 +21,7 @@ members = [
     "platform_abi",
     "playback",
     "instance_ipc",
+    "tcheflix",
     "wake_event",
     "wayland",
     "windows",

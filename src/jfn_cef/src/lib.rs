@@ -3,6 +3,7 @@
 mod app;
 mod app_menu;
 mod business_common;
+pub mod business_update;
 pub mod business_web;
 mod cef_string;
 pub mod client;

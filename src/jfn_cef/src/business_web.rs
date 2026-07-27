@@ -221,6 +221,11 @@ fn handle_message(message: BrowserMessage) -> bool {
         return true;
     }
 
+    // Tchê Flix: the auto-updater dialog's IPC names (fork-owned).
+    if let Some(handled) = crate::business_update::handle_message(&message) {
+        return handled;
+    }
+
     // mpv handle not yet initialised — return false so CEF treats the message as unhandled.
     if jfn_mpv_handle_get().is_null() {
         return false;

@@ -1351,6 +1351,15 @@ fn run_with_cef(
         }
     };
     WEB_OVERLAY.lock().replace(overlay.clone());
+    // Tchê Flix: kick off the transparent background update check now that the
+    // web overlay is live. Fork-owned, Windows-only; see crate::updater.
+    #[cfg(target_os = "windows")]
+    crate::updater::start(|js| {
+        let Some(overlay) = WEB_OVERLAY.lock().clone() else {
+            return;
+        };
+        overlay.exec_js(js);
+    });
     RunningRuntime {
         resources,
         manager_thread,

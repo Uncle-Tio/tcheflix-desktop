@@ -49,6 +49,9 @@ pub(crate) enum NativeFunction {
     ThemeColor,
     SetOsdVisible,
     ToggleFullscreen,
+    UpdateQuery,
+    UpdateApply,
+    UpdateLater,
 }
 
 impl NativeFunction {
@@ -85,6 +88,9 @@ impl NativeFunction {
             "themeColor" => Self::ThemeColor,
             "setOsdVisible" => Self::SetOsdVisible,
             "toggleFullscreen" => Self::ToggleFullscreen,
+            "updateQuery" => Self::UpdateQuery,
+            "updateApply" => Self::UpdateApply,
+            "updateLater" => Self::UpdateLater,
             _ => return None,
         })
     }
@@ -122,6 +128,9 @@ impl NativeFunction {
             Self::ThemeColor => "themeColor",
             Self::SetOsdVisible => "setOsdVisible",
             Self::ToggleFullscreen => "toggleFullscreen",
+            Self::UpdateQuery => "updateQuery",
+            Self::UpdateApply => "updateApply",
+            Self::UpdateLater => "updateLater",
         }
     }
 }
@@ -135,6 +144,7 @@ pub(crate) enum InjectedScript {
     InputPlugin,
     SelectMenu,
     SubtitleStyle,
+    TcheflixUpdate,
 }
 
 impl InjectedScript {
@@ -147,6 +157,7 @@ impl InjectedScript {
             "input-plugin.js" => Self::InputPlugin,
             "select-menu.js" => Self::SelectMenu,
             "subtitle-style.js" => Self::SubtitleStyle,
+            "update.js" => Self::TcheflixUpdate,
             _ => return None,
         })
     }
@@ -160,6 +171,7 @@ impl InjectedScript {
             Self::InputPlugin => "input-plugin.js",
             Self::SelectMenu => "select-menu.js",
             Self::SubtitleStyle => "subtitle-style.js",
+            Self::TcheflixUpdate => "update.js",
         }
     }
 
@@ -202,6 +214,9 @@ const WEB_FUNCTIONS: &[NativeFunction] = &[
     NativeFunction::ThemeColor,
     NativeFunction::SetOsdVisible,
     NativeFunction::ToggleFullscreen,
+    NativeFunction::UpdateQuery,
+    NativeFunction::UpdateApply,
+    NativeFunction::UpdateLater,
 ];
 
 const WEB_SCRIPTS: &[InjectedScript] = &[
@@ -211,6 +226,7 @@ const WEB_SCRIPTS: &[InjectedScript] = &[
     InjectedScript::MpvAudioPlayer,
     InjectedScript::InputPlugin,
     InjectedScript::SubtitleStyle,
+    InjectedScript::TcheflixUpdate,
 ];
 const FUNCTIONS_KEY: &str = "functions";
 const SCRIPTS_KEY: &str = "scripts";
