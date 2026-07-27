@@ -98,6 +98,16 @@
                 audioExclusive: _savedSettings.audioExclusive || false,
                 audioChannels: _savedSettings.audioChannels || ''
             },
+            subtitles: {
+                subScale: _savedSettings.subScale || 1,
+                subFont: _savedSettings.subFont || '',
+                subColor: _savedSettings.subColor || '',
+                // Nullish coalescing: 0 (Off) is a valid border size, so `|| 3` would be wrong.
+                subBorderSize: _savedSettings.subBorderSize ?? 3,
+                subBorderColor: _savedSettings.subBorderColor || '',
+                subPos: _savedSettings.subPos ?? 100,
+                subBold: !!_savedSettings.subBold
+            },
             transcode: {
                 forceTranscoding: !!_savedSettings.forceTranscoding
             },

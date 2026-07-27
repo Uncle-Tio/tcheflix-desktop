@@ -62,7 +62,21 @@ struct SettingsData {
     force_transcoding: bool,
     window_decorations: Option<WindowDecorations>,
     hide_scrollbar: bool,
+    sub_scale: f64,
+    sub_font: String,
+    sub_color: String,
+    sub_border_size: f64,
+    sub_border_color: String,
+    sub_pos: f64,
+    sub_bold: bool,
 }
+
+const SUB_SCALE_DEFAULT: f64 = 1.0;
+// mpv's `sub-border-size` default; matching values are "no override" (not
+// seeded at boot, not persisted).
+const SUB_BORDER_SIZE_DEFAULT: f64 = 3.0;
+// mpv's `sub-pos` default (100 = screen bottom).
+const SUB_POS_DEFAULT: f64 = 100.0;
 
 impl Default for SettingsData {
     fn default() -> Self {
@@ -80,6 +94,13 @@ impl Default for SettingsData {
             force_transcoding: false,
             window_decorations: None,
             hide_scrollbar: true,
+            sub_scale: SUB_SCALE_DEFAULT,
+            sub_font: String::new(),
+            sub_color: String::new(),
+            sub_border_size: SUB_BORDER_SIZE_DEFAULT,
+            sub_border_color: String::new(),
+            sub_pos: SUB_POS_DEFAULT,
+            sub_bold: false,
         }
     }
 }
@@ -146,6 +167,27 @@ struct SettingsFile {
 
     #[serde(deserialize_with = "lenient", skip_serializing_if = "Option::is_none")]
     hide_scrollbar: Option<bool>,
+
+    #[serde(deserialize_with = "lenient", skip_serializing_if = "Option::is_none")]
+    sub_scale: Option<f64>,
+
+    #[serde(deserialize_with = "lenient", skip_serializing_if = "Option::is_none")]
+    sub_font: Option<String>,
+
+    #[serde(deserialize_with = "lenient", skip_serializing_if = "Option::is_none")]
+    sub_color: Option<String>,
+
+    #[serde(deserialize_with = "lenient", skip_serializing_if = "Option::is_none")]
+    sub_border_size: Option<f64>,
+
+    #[serde(deserialize_with = "lenient", skip_serializing_if = "Option::is_none")]
+    sub_border_color: Option<String>,
+
+    #[serde(deserialize_with = "lenient", skip_serializing_if = "Option::is_none")]
+    sub_pos: Option<f64>,
+
+    #[serde(deserialize_with = "lenient", skip_serializing_if = "Option::is_none")]
+    sub_bold: Option<bool>,
 
     #[serde(deserialize_with = "lenient", skip_serializing_if = "Option::is_none")]
     device_name: Option<String>,
@@ -216,6 +258,23 @@ struct CliSettings<'a> {
 
     hide_scrollbar: bool,
 
+    sub_scale: f64,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    sub_font: Option<&'a str>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    sub_color: Option<&'a str>,
+
+    sub_border_size: f64,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    sub_border_color: Option<&'a str>,
+
+    sub_pos: f64,
+
+    sub_bold: bool,
+
     #[serde(skip_serializing_if = "Option::is_none")]
     device_name: Option<&'a str>,
 
@@ -284,6 +343,27 @@ impl SettingsData {
         if let Some(v) = file.hide_scrollbar {
             self.hide_scrollbar = v;
         }
+        if let Some(v) = file.sub_scale {
+            self.sub_scale = v;
+        }
+        if let Some(v) = file.sub_font {
+            self.sub_font = v;
+        }
+        if let Some(v) = file.sub_color {
+            self.sub_color = v;
+        }
+        if let Some(v) = file.sub_border_size {
+            self.sub_border_size = v;
+        }
+        if let Some(v) = file.sub_border_color {
+            self.sub_border_color = v;
+        }
+        if let Some(v) = file.sub_pos {
+            self.sub_pos = v;
+        }
+        if let Some(v) = file.sub_bold {
+            self.sub_bold = v;
+        }
     }
 
     fn to_file(&self) -> SettingsFile {
@@ -310,6 +390,15 @@ impl SettingsData {
             force_transcoding: self.force_transcoding.then_some(true),
             window_decorations: self.window_decorations,
             hide_scrollbar: (!self.hide_scrollbar).then_some(false),
+            sub_scale: (self.sub_scale != SUB_SCALE_DEFAULT).then_some(self.sub_scale),
+            sub_font: (!self.sub_font.is_empty()).then(|| self.sub_font.clone()),
+            sub_color: (!self.sub_color.is_empty()).then(|| self.sub_color.clone()),
+            sub_border_size: (self.sub_border_size != SUB_BORDER_SIZE_DEFAULT)
+                .then_some(self.sub_border_size),
+            sub_border_color: (!self.sub_border_color.is_empty())
+                .then(|| self.sub_border_color.clone()),
+            sub_pos: (self.sub_pos != SUB_POS_DEFAULT).then_some(self.sub_pos),
+            sub_bold: self.sub_bold.then_some(true),
             device_name: (!self.device_name.is_empty()).then(|| self.device_name.clone()),
         }
     }
@@ -327,6 +416,14 @@ impl SettingsData {
             log_level: (!self.log_level.is_empty()).then_some(self.log_level.as_str()),
             force_transcoding: self.force_transcoding,
             hide_scrollbar: self.hide_scrollbar,
+            sub_scale: self.sub_scale,
+            sub_font: (!self.sub_font.is_empty()).then_some(self.sub_font.as_str()),
+            sub_color: (!self.sub_color.is_empty()).then_some(self.sub_color.as_str()),
+            sub_border_size: self.sub_border_size,
+            sub_border_color: (!self.sub_border_color.is_empty())
+                .then_some(self.sub_border_color.as_str()),
+            sub_pos: self.sub_pos,
+            sub_bold: self.sub_bold,
             device_name: (!self.device_name.is_empty()).then_some(self.device_name.as_str()),
             device_name_default: default_device_name(),
             hwdec_options: hwdec_options(),
@@ -507,6 +604,17 @@ macro_rules! bool_accessors {
     };
 }
 
+macro_rules! f64_accessors {
+    ($getter:ident, $setter:ident, $field:ident) => {
+        pub fn $getter() -> f64 {
+            state().lock().data.$field
+        }
+        pub fn $setter(v: f64) {
+            state().lock().data.$field = v;
+        }
+    };
+}
+
 string_accessors!(server_url, set_server_url, server_url);
 
 pub fn hwdec() -> Hwdec {
@@ -519,6 +627,12 @@ pub fn set_hwdec(v: Hwdec) {
 string_accessors!(audio_passthrough, set_audio_passthrough, audio_passthrough);
 string_accessors!(audio_channels, set_audio_channels, audio_channels);
 string_accessors!(log_level, set_log_level, log_level);
+string_accessors!(sub_font, set_sub_font, sub_font);
+string_accessors!(sub_color, set_sub_color, sub_color);
+string_accessors!(sub_border_color, set_sub_border_color, sub_border_color);
+f64_accessors!(sub_scale, set_sub_scale, sub_scale);
+f64_accessors!(sub_border_size, set_sub_border_size, sub_border_size);
+f64_accessors!(sub_pos, set_sub_pos, sub_pos);
 
 pub fn device_name() -> String {
     state().lock().data.device_name.clone()
@@ -599,6 +713,7 @@ pub fn titlebar_theme_color() -> bool {
     window_decorations_mode() == WindowDecorations::ServerThemed
 }
 bool_accessors!(hide_scrollbar, set_hide_scrollbar, hide_scrollbar);
+bool_accessors!(sub_bold, set_sub_bold, sub_bold);
 
 pub fn window_geometry() -> JfnWindowGeometry {
     state().lock().data.window
@@ -718,6 +833,13 @@ mod tests {
             force_transcoding: true,
             window_decorations: Some(WindowDecorations::ServerThemed),
             hide_scrollbar: false,
+            sub_scale: 2.0,
+            sub_font: "Arial".into(),
+            sub_color: "#ffffff".into(),
+            sub_border_size: 4.0,
+            sub_border_color: "#000000".into(),
+            sub_pos: 90.0,
+            sub_bold: true,
         };
         let text = serde_json::to_string(&data.to_file()).expect("serializes");
         assert_eq!(
@@ -741,6 +863,13 @@ mod tests {
                 "forceTranscoding",
                 "windowDecorations",
                 "hideScrollbar",
+                "subScale",
+                "subFont",
+                "subColor",
+                "subBorderSize",
+                "subBorderColor",
+                "subPos",
+                "subBold",
                 "deviceName",
             ]
         );
@@ -812,6 +941,10 @@ mod tests {
                 "transparentTitlebar",
                 "forceTranscoding",
                 "hideScrollbar",
+                "subScale",
+                "subBorderSize",
+                "subPos",
+                "subBold",
                 "deviceName",
                 "deviceNameDefault",
                 "hwdecOptions",

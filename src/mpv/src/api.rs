@@ -317,6 +317,27 @@ pub fn jfn_mpv_set_audio_delay(s: f64) {
 pub fn jfn_mpv_set_subtitle_delay(s: f64) {
     unsafe { set_double(c"sub-delay", s) };
 }
+pub fn jfn_mpv_set_sub_scale(v: f64) {
+    unsafe { set_double(c"sub-scale", v) };
+}
+pub fn jfn_mpv_set_sub_font(v: &CStr) {
+    unsafe { set_str(c"sub-font", v) };
+}
+pub fn jfn_mpv_set_sub_color(v: &CStr) {
+    unsafe { set_str(c"sub-color", v) };
+}
+pub fn jfn_mpv_set_sub_border_size(v: f64) {
+    unsafe { set_double(c"sub-border-size", v) };
+}
+pub fn jfn_mpv_set_sub_border_color(v: &CStr) {
+    unsafe { set_str(c"sub-border-color", v) };
+}
+pub fn jfn_mpv_set_sub_pos(v: f64) {
+    unsafe { set_double(c"sub-pos", v) };
+}
+pub fn jfn_mpv_set_sub_bold(v: bool) {
+    unsafe { set_flag(c"sub-bold", v) };
+}
 pub fn jfn_mpv_set_start_position(s: f64) {
     unsafe { set_double(c"start", s) };
 }

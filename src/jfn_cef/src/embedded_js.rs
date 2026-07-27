@@ -8,6 +8,7 @@ pub fn get(name: &str) -> Option<&'static str> {
         "mpv-audio-player.js" => include_str!("../../web/mpv-audio-player.js"),
         "input-plugin.js" => include_str!("../../web/input-plugin.js"),
         "select-menu.js" => include_str!("../../web/select-menu.js"),
+        "subtitle-style.js" => include_str!("../../web/subtitle-style.js"),
         _ => return None,
     })
 }

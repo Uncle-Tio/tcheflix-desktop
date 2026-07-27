@@ -30,6 +30,23 @@ pub(crate) fn js_cstr_or_warn(label: &str, s: &str) -> Option<CString> {
 
 // --- app-specific dispatch -------------------------------------------------
 
+/// Persist a string subtitle override and apply it to mpv. Empty means "no
+/// override"; since mpv rejects an empty color/font, the built-in `default` is
+/// sent live instead (persistence still stores "").
+fn apply_sub_string(
+    label: &str,
+    value: &str,
+    default: &str,
+    persist: impl FnOnce(&str),
+    apply: impl FnOnce(&std::ffi::CStr),
+) {
+    persist(value);
+    let live = if value.is_empty() { default } else { value };
+    if let Some(c) = js_cstr_or_warn(label, live) {
+        apply(&c);
+    }
+}
+
 /// `setSettingValue` IPC dispatch. Superset of the keys the overlay and the
 /// main web UI send today — both UIs share this single source of truth so
 /// new keys land in one place.
@@ -65,6 +82,49 @@ pub(crate) fn apply_setting_value(_section: &str, key: &str, value: Option<&str>
         "forceTranscoding" => jfn_config::set_force_transcoding(value == "true"),
         "deviceName" => {
             jfn_config::set_device_name(value, &jfn_config::default_device_name());
+        }
+        // Subtitle styling: persist + apply live. The mpv setters no-op when
+        // the handle isn't initialized, so calling here is always safe.
+        "subScale" => {
+            let v = value.parse::<f64>().unwrap_or(1.0);
+            jfn_config::set_sub_scale(v);
+            jfn_mpv::api::jfn_mpv_set_sub_scale(v);
+        }
+        "subFont" => apply_sub_string(
+            key,
+            value,
+            "sans-serif",
+            jfn_config::set_sub_font,
+            jfn_mpv::api::jfn_mpv_set_sub_font,
+        ),
+        "subColor" => apply_sub_string(
+            key,
+            value,
+            "#FFFFFFFF",
+            jfn_config::set_sub_color,
+            jfn_mpv::api::jfn_mpv_set_sub_color,
+        ),
+        "subBorderColor" => apply_sub_string(
+            key,
+            value,
+            "#FF000000",
+            jfn_config::set_sub_border_color,
+            jfn_mpv::api::jfn_mpv_set_sub_border_color,
+        ),
+        "subBorderSize" => {
+            let v = value.parse::<f64>().unwrap_or(3.0);
+            jfn_config::set_sub_border_size(v);
+            jfn_mpv::api::jfn_mpv_set_sub_border_size(v);
+        }
+        "subPos" => {
+            let v = value.parse::<f64>().unwrap_or(100.0);
+            jfn_config::set_sub_pos(v);
+            jfn_mpv::api::jfn_mpv_set_sub_pos(v);
+        }
+        "subBold" => {
+            let on = value == "true";
+            jfn_config::set_sub_bold(on);
+            jfn_mpv::api::jfn_mpv_set_sub_bold(on);
         }
         _ => jfn_logging::log(
             jfn_logging::Category::Cef,
