@@ -1,6 +1,6 @@
 #include <winver.h>
 
-IDI_ICON1 ICON "@CMAKE_SOURCE_DIR@/resources/win/jellyfin.ico"
+IDI_ICON1 ICON "@CMAKE_SOURCE_DIR@/src/tcheflix/assets/tcheflix_icon.ico"
 
 1 24 "@CMAKE_SOURCE_DIR@/resources/win/jellium-desktop.exe.manifest"
 

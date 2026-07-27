@@ -1,58 +1,24 @@
-# Jellium Desktop
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="src/tcheflix/assets/tcheflix_banner_light.png">
+    <img alt="Tchê Flix" src="src/tcheflix/assets/tcheflix_banner.png" width="360">
+  </picture>
+</p>
 
-An unofficial [Jellyfin](https://jellyfin.org) desktop client built on [CEF](https://github.com/chromiumembedded/cef) and [mpv](https://mpv.io/).
+A **personal** fork of [Jellium Desktop](https://github.com/andrewrabert/jellium-desktop), which is itself an unofficial [Jellyfin](https://jellyfin.org) client.
 
-## Downloads
-### Linux
-- AppImage
-  - [x86_64](https://nightly.link/andrewrabert/jellium-desktop/workflows/build-linux-appimage/main/linux-appimage-x86_64.zip)
-  - [aarch64](https://nightly.link/andrewrabert/jellium-desktop/workflows/build-linux-appimage/main/linux-appimage-aarch64.zip)
-- Arch Linux (AUR): [jellium-desktop-git](https://aur.archlinux.org/packages/jellium-desktop-git)
-- [Flatpak (non-Flathub bundle)](https://nightly.link/andrewrabert/jellium-desktop/workflows/build-linux-flatpak/main/linux-flatpak-x86_64.zip)
+It exists so I can make whatever changes I want to the client for my own use. It's **not** affiliated with or endorsed by the Jellyfin project, nor by Jellium Desktop. The renaming/re-versioning/rebranding follow Jellyfin's [branding guidelines](https://jellyfin.org/docs/project/branding/) so that every surface makes clear this is a modified build — neither Jellyfin's nor Jellium Desktop's.
 
-### macOS
-- [Apple Silicon](https://nightly.link/andrewrabert/jellium-desktop/workflows/build-macos/main/macos-arm64.zip)
-- [Intel](https://nightly.link/andrewrabert/jellium-desktop/workflows/build-macos/main/macos-x86_64.zip)
+> [!IMPORTANT]
+> Development and testing target **Windows** only, unlike upstream.
+> You *can* use this fork, but know what you're getting: it's tailored to my preferences, multi-language support is a low priority, and things may break at any time (though it does stay maintained — I use it myself).
 
-After installing, remove quarantine: 
-```
-sudo xattr -cr /Applications/Jellium\ Desktop.app
-```
+## What's different from upstream
 
-### Windows
-- [x64](https://nightly.link/andrewrabert/jellium-desktop/workflows/build-windows/main/windows-x64.zip)
-- [arm64](https://nightly.link/andrewrabert/jellium-desktop/workflows/build-windows/main/windows-arm64.zip)
+- **On-player subtitle styling menu** — font, size, color, outline, position and bold, from inside the player.
+- **Legible subtitle defaults** — 150% scale with a thin outline, like the old Qt client.
+- **Auto-updater** — checks GitHub Releases on launch, downloads in the background, applies once you confirm.
 
+## Permission
 
-## Development
-
-This project uses [just](https://github.com/casey/just) as a command runner.
-
-```
-Available recipes:
-    [package]
-    appimage ...    # [linux] build AppImage
-    flatpak ...     # [linux] build Flatpak bundle
-    dmg             # [macos] build Apple Disk Image (.dmg)
-
-    [maintenance]
-    outdated      # List outdated dependencies
-    clean         # Remove build artifacts
-
-    [test]
-    test          # Run tests
-
-    [lint]
-    fmt           # Format workspace
-    fmt-check     # Check formatting
-    clippy        # Run clippy
-    lint          # Lint workspace
-    strict-lint   # Strict lint workspace
-
-    [build]
-    build         # Build the app
-
-    [run]
-    run *args     # Run the app
-    run-mpv *args # Run the mpv CLI
-```
+You're free to read, use, and modify my changes however you like — whether for your own personal use or to send them upstream as pull requests to [Jellium Desktop](https://github.com/andrewrabert/jellium-desktop). The upstream code is licensed under [GPL-2.0](LICENSE), and these modifications keep the same license.

@@ -414,7 +414,7 @@
         init() {
             return Promise.resolve({
                 deviceName: jmpInfo.deviceName,
-                appName: 'Jellium Desktop',
+                appName: 'Tche Flix',
                 appVersion: jmpInfo.version
             });
         },
@@ -432,7 +432,7 @@
         },
         getDeviceProfile,
         getSyncProfile: getDeviceProfile,
-        appName() { return 'Jellium Desktop'; },
+        appName() { return 'Tche Flix'; },
         appVersion() { return jmpInfo.version; },
         deviceName() { return jmpInfo.deviceName; },
         exit() { window.api.system.exit(); }

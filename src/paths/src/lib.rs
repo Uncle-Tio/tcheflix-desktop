@@ -14,8 +14,11 @@ use std::io;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
-const APP_DIR_NAME: &str = "jellium-desktop";
-const LOG_FILE_NAME: &str = "jellium-desktop.log";
+// Fork-owned: the per-user data directory carries the fork's own name, so it is
+// not dragged along by upstream renames (jellyfin-desktop → jellium-desktop →
+// whatever comes next). The installer migrates the pre-fork directory once.
+const APP_DIR_NAME: &str = "tcheflix-desktop";
+const LOG_FILE_NAME: &str = "tcheflix-desktop.log";
 
 struct Overrides {
     config_dir: Option<PathBuf>,
