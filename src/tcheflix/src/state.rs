@@ -1,6 +1,6 @@
 //! Persisted updater state: last-check timestamp and a skipped version.
 //!
-//! Stored as JSON in `%LOCALAPPDATA%\jellyfin-desktop\updates\state.json`
+//! Stored as JSON in `%LOCALAPPDATA%\tcheflix-desktop\updates\state.json`
 //! (reusing `jfn_paths::cache_dir`). All operations are best-effort: a missing
 //! or corrupt file yields defaults, and write failures are ignored.
 
