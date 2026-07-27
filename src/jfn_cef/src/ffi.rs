@@ -107,13 +107,24 @@ pub(crate) fn jfn_cef_initialize(
     let settings_path = jfn_paths::config_dir().join("settings.json");
     jfn_config::settings_init(&settings_path);
 
+    // Follow the OS locale so jellyfin-web's "auto" language mode (and our
+    // overlay) pick the system language instead of always defaulting to
+    // English. Per CEF docs, `accept_language_list` is what drives the
+    // `navigator.language` JS attribute and the Accept-Language header, while
+    // `locale` selects Chromium's own UI resource bundle (context menus, error
+    // pages); we set both. `locale` is ignored on Linux, where CEF parses the
+    // LANGUAGE/LC_*/LANG env vars instead, but `accept_language_list` still
+    // applies. Falls back to en-US when detection fails.
+    let locale = sys_locale::get_locale().unwrap_or_else(|| "en-US".to_string());
+
     let mut settings = Settings {
         no_sandbox: 1,
         windowless_rendering_enabled: 1,
         disable_signal_handlers: 1,
         log_severity: options.log_severity.native(),
         remote_debugging_port: options.remote_debugging_port.native(),
-        locale: CefString::from("en-US"),
+        locale: CefString::from(locale.as_str()),
+        accept_language_list: CefString::from(build_accept_language(&locale).as_str()),
         user_agent: CefString::from(concat!(
             "Mozilla/5.0 jellium-desktop/",
             env!("JFN_APP_VERSION")
@@ -230,6 +241,25 @@ pub(crate) fn jfn_cef_shutdown(runtime: &crate::InitializedCef) {
 }
 
 // ---- helpers ---------------------------------------------------------------
+
+/// Build an `Accept-Language` list from the detected locale, seeding
+/// `navigator.languages` and the HTTP `Accept-Language` header. E.g.
+/// `"pt-BR"` -> `"pt-BR,pt,en-US,en"`: the full tag, its language-only form,
+/// then English fallbacks, skipping duplicates.
+fn build_accept_language(locale: &str) -> String {
+    let mut parts: Vec<String> = vec![locale.to_string()];
+    let mut push_unique = |tag: &str| {
+        if !parts.iter().any(|p| p.eq_ignore_ascii_case(tag)) {
+            parts.push(tag.to_string());
+        }
+    };
+    if let Some((lang, _region)) = locale.split_once('-') {
+        push_unique(lang);
+    }
+    push_unique("en-US");
+    push_unique("en");
+    parts.join(",")
+}
 
 fn fill_paths(settings: &mut Settings, platform: &dyn jfn_platform_abi::Platform) {
     let paths = platform.cef_paths();

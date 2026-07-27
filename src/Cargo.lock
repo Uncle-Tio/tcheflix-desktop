@@ -2682,6 +2682,7 @@ dependencies = [
  "serde",
  "serde_json",
  "slotmap",
+ "sys-locale",
  "thiserror 2.0.21",
 ]
 
