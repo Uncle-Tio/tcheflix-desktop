@@ -428,6 +428,7 @@ impl PlaybackCoordination {
         let stopped = StoppedPlayback;
         self.stopped = true;
         plat().media_session().stop();
+        crate::discord::stop();
         jfn_playback::ingest_driver::jfn_playback_stop_mpv_event_thread();
         stopped
     }
@@ -438,6 +439,7 @@ impl Drop for PlaybackCoordination {
         if !self.stopped {
             let _shutdown = StoppedPlayback;
             plat().media_session().stop();
+            crate::discord::stop();
             jfn_playback::ingest_driver::jfn_playback_stop_mpv_event_thread();
         }
     }
@@ -760,6 +762,8 @@ impl RunningRuntime {
     /// Enable external producers only after all overlay/manager callbacks exist.
     fn start_ingestion(&self, instance: &Instance) -> Result<(), PlaybackStartError> {
         plat().media_session().start(instance);
+        // Tchê Flix: fork-owned, see crate::discord.
+        crate::discord::start();
         if !jfn_playback::ingest_driver::jfn_playback_start_mpv_event_thread() {
             return Err(PlaybackStartError);
         }

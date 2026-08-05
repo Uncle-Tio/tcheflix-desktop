@@ -56,6 +56,8 @@ pub struct MediaMetadata {
     pub art_url: String,
     pub art_data_uri: String,
     pub media_type: MediaType,
+    pub community_rating: f64,
+    pub production_year: i32,
 }
 
 #[repr(C)]

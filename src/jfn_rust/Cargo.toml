@@ -38,6 +38,7 @@ jfn-platform-abi = { path = "../platform_abi" }
 jfn-cef = { path = "../jfn_cef", default-features = false }
 jfn-color = { path = "../color" }
 jfn-config = { path = "../config" }
+jfn-discord = { path = "../discord" }
 jfn-gpu-paint = { path = "../gpu_paint" }
 jfn-jellyfin = { path = "../jellyfin" }
 jfn-logging = { path = "../logging" }

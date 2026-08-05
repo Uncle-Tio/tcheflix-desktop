@@ -69,6 +69,12 @@ struct SettingsData {
     sub_border_color: String,
     sub_pos: f64,
     sub_bold: bool,
+    // Discord Rich Presence.
+    discord_rpc: bool,
+    // Public base URL used only to build the cover-art link sent to Discord.
+    discord_image_base: String,
+    // Put the item name in the Discord status line instead of the app name.
+    discord_status_title: bool,
 }
 
 // Override mpv defaults: 150% scale + thin (1.5) outline, mimicking the
@@ -103,6 +109,9 @@ impl Default for SettingsData {
             sub_border_color: String::new(),
             sub_pos: SUB_POS_DEFAULT,
             sub_bold: false,
+            discord_rpc: true,
+            discord_image_base: String::new(),
+            discord_status_title: true,
         }
     }
 }
@@ -193,6 +202,15 @@ struct SettingsFile {
 
     #[serde(deserialize_with = "lenient", skip_serializing_if = "Option::is_none")]
     device_name: Option<String>,
+
+    #[serde(deserialize_with = "lenient", skip_serializing_if = "Option::is_none")]
+    discord_rpc: Option<bool>,
+
+    #[serde(deserialize_with = "lenient", skip_serializing_if = "Option::is_none")]
+    discord_image_base: Option<String>,
+
+    #[serde(deserialize_with = "lenient", skip_serializing_if = "Option::is_none")]
+    discord_status_title: Option<bool>,
 }
 
 /// Reads any JSON value and yields `None` unless it deserializes as `T`, so a
@@ -366,6 +384,15 @@ impl SettingsData {
         if let Some(v) = file.sub_bold {
             self.sub_bold = v;
         }
+        if let Some(v) = file.discord_rpc {
+            self.discord_rpc = v;
+        }
+        if let Some(v) = file.discord_image_base {
+            self.discord_image_base = v;
+        }
+        if let Some(v) = file.discord_status_title {
+            self.discord_status_title = v;
+        }
     }
 
     fn to_file(&self) -> SettingsFile {
@@ -402,6 +429,12 @@ impl SettingsData {
             sub_pos: (self.sub_pos != SUB_POS_DEFAULT).then_some(self.sub_pos),
             sub_bold: self.sub_bold.then_some(true),
             device_name: (!self.device_name.is_empty()).then(|| self.device_name.clone()),
+            // Default is on, so only the opt-out is worth persisting.
+            discord_rpc: (!self.discord_rpc).then_some(false),
+            discord_image_base: (!self.discord_image_base.is_empty())
+                .then(|| self.discord_image_base.clone()),
+            // Default is on, so only the opt-out is worth persisting.
+            discord_status_title: (!self.discord_status_title).then_some(false),
         }
     }
 
@@ -715,6 +748,17 @@ pub fn titlebar_theme_color() -> bool {
     window_decorations_mode() == WindowDecorations::ServerThemed
 }
 bool_accessors!(hide_scrollbar, set_hide_scrollbar, hide_scrollbar);
+bool_accessors!(discord_rpc, set_discord_rpc, discord_rpc);
+string_accessors!(
+    discord_image_base,
+    set_discord_image_base,
+    discord_image_base
+);
+bool_accessors!(
+    discord_status_title,
+    set_discord_status_title,
+    discord_status_title
+);
 bool_accessors!(sub_bold, set_sub_bold, sub_bold);
 
 pub fn window_geometry() -> JfnWindowGeometry {
@@ -842,6 +886,9 @@ mod tests {
             sub_border_color: "#000000".into(),
             sub_pos: 90.0,
             sub_bold: true,
+            discord_rpc: false,
+            discord_image_base: "https://example.invalid".into(),
+            discord_status_title: false,
         };
         let text = serde_json::to_string(&data.to_file()).expect("serializes");
         assert_eq!(
@@ -873,6 +920,9 @@ mod tests {
                 "subPos",
                 "subBold",
                 "deviceName",
+                "discordRpc",
+                "discordImageBase",
+                "discordStatusTitle",
             ]
         );
         assert!(text.contains(r#""windowDecorations":"serverThemed""#));

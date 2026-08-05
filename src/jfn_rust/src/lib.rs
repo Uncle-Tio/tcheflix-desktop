@@ -1,6 +1,7 @@
 pub mod app;
 mod app_menu;
 mod cli;
+mod discord;
 pub mod manager;
 mod platform_install;
 pub mod shell;

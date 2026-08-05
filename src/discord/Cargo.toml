@@ -1,0 +1,18 @@
+[package]
+name = "jfn-discord"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[lib]
+name = "jfn_discord"
+crate-type = ["rlib"]
+
+[dependencies]
+jfn-playback = { path = "../playback" }
+discord-rich-presence = "1.1"
+parking_lot.workspace = true
+tracing.workspace = true
+
+[lints]
+workspace = true

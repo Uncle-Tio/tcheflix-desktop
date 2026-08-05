@@ -30,6 +30,8 @@
                 Artists: item.Artists || [],
                 IndexNumber: item.IndexNumber || 0,
                 RunTimeTicks: item.RunTimeTicks || 0,
+                CommunityRating: item.CommunityRating || 0,
+                ProductionYear: item.ProductionYear || 0,
                 Id: item.Id || ''
             };
             console.debug('[Media] notifyMetadata:', meta.Name);

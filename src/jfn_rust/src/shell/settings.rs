@@ -22,6 +22,10 @@ pub const DEVICE_NAME_FIELD: Id = Id::new("shell-settings-device-name");
 pub const LOG_LEVEL_CONTROL: Id = Id::new("shell-settings-log-level");
 pub const OPEN_MPV_CONFIG_CONTROL: Id = Id::new("shell-settings-open-mpv-config");
 pub const RESET_SERVER_CONTROL: Id = Id::new("shell-settings-reset-server");
+// Tchê Flix: Discord Rich Presence (fork-owned, see crate::discord).
+pub const DISCORD_RPC_CONTROL: Id = Id::new("shell-settings-discord-rpc");
+pub const DISCORD_STATUS_TITLE_CONTROL: Id = Id::new("shell-settings-discord-status-title");
+pub const DISCORD_IMAGE_BASE_FIELD: Id = Id::new("shell-settings-discord-image-base");
 
 pub const TITLE: &str = "Settings";
 pub const CLOSE_LABEL: &str = "Close Settings";
@@ -51,6 +55,10 @@ pub enum Message {
     LogLevelChanged(String),
     OpenMpvConfigDirectory,
     ResetSavedServer,
+    DiscordRpcChanged(bool),
+    DiscordStatusTitleChanged(bool),
+    DiscordImageBaseEdited(String),
+    CommitDiscordImageBase,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -64,6 +72,7 @@ pub struct Settings {
     pub audio_passthrough: String,
     pub device_name: String,
     pub device_name_default: String,
+    pub discord_image_base: String,
     server_available: bool,
     decoration_options: Vec<Option<WindowDecorations>>,
 }
@@ -87,6 +96,7 @@ impl Settings {
             audio_passthrough: jfn_config::audio_passthrough(),
             device_name: jfn_config::device_name(),
             device_name_default: jfn_config::default_device_name(),
+            discord_image_base: jfn_config::discord_image_base(),
             server_available: !jfn_config::server_url().is_empty(),
             decoration_options,
         }
@@ -149,6 +159,8 @@ impl Settings {
             )]),
         ]
         .spacing(22);
+
+        controls = controls.push(self.discord_group());
 
         let mut advanced = column![].spacing(16);
         if !self.decoration_options.is_empty() {
@@ -256,14 +268,19 @@ impl Settings {
                 jfn_config::set_device_name(&self.device_name, &self.device_name_default);
                 jfn_config::settings_save_async();
             }
+            Message::CommitDiscordImageBase => {
+                jfn_config::set_discord_image_base(&self.discord_image_base);
+                jfn_config::settings_save_async();
+            }
             _ => {}
         }
     }
 
-    /// Commits both text drafts before the containing overlay is dismissed.
+    /// Commits every text draft before the containing overlay is dismissed.
     pub fn dismiss(&mut self) -> Outcome {
         self.commit_text(Message::CommitAudioPassthrough);
         self.commit_text(Message::CommitDeviceName);
+        self.commit_text(Message::CommitDiscordImageBase);
         Outcome::Dismiss
     }
 
@@ -310,9 +327,22 @@ impl Settings {
             Message::ResetSavedServer => {
                 self.commit_text(Message::CommitAudioPassthrough);
                 self.commit_text(Message::CommitDeviceName);
+                self.commit_text(Message::CommitDiscordImageBase);
                 jfn_config::set_server_url("");
                 jfn_config::settings_save_async();
                 return Outcome::ResetSavedServer;
+            }
+            Message::DiscordRpcChanged(value) => jfn_config::set_discord_rpc(value),
+            Message::DiscordStatusTitleChanged(value) => {
+                jfn_config::set_discord_status_title(value);
+            }
+            Message::DiscordImageBaseEdited(value) => {
+                self.discord_image_base = value;
+                return Outcome::None;
+            }
+            Message::CommitDiscordImageBase => {
+                self.commit_text(Message::CommitDiscordImageBase);
+                return Outcome::None;
             }
         }
         jfn_config::settings_save_async();
@@ -329,9 +359,47 @@ impl Settings {
             audio_passthrough: String::new(),
             device_name: String::new(),
             device_name_default: "host".to_owned(),
+            discord_image_base: String::new(),
             server_available: false,
             decoration_options: Vec::new(),
         }
+    }
+
+    /// Tchê Flix: the Discord Rich Presence settings.
+    fn discord_group(&self) -> Element<'_, Message, Theme, iced_wgpu::Renderer> {
+        self.group(
+            "Discord",
+            column![
+                self.toggle(
+                    DISCORD_RPC_CONTROL,
+                    "Rich Presence",
+                    jfn_config::discord_rpc(),
+                    Message::DiscordRpcChanged,
+                    "Show what you are watching in your Discord status. Requires Discord to be running. Requires restart.",
+                ),
+                self.toggle(
+                    DISCORD_STATUS_TITLE_CONTROL,
+                    "Show Title in Status",
+                    jfn_config::discord_status_title(),
+                    Message::DiscordStatusTitleChanged,
+                    "Put what you are watching in the Discord status line: \"Watching Fear The Walking Dead\" instead of \"Watching Tchê Flix\". Applies from the next playback event.",
+                ),
+                self.setting(
+                    "Cover Art URL",
+                    crate::shell::field::field(
+                        DISCORD_IMAGE_BASE_FIELD,
+                        "e.g. https://jellyfin.example.com",
+                        &self.discord_image_base,
+                    )
+                    .on_input(Message::DiscordImageBaseEdited)
+                    .on_submit(Message::CommitDiscordImageBase)
+                    .on_unfocus(Message::CommitDiscordImageBase)
+                    .padding(Padding::from([8, 10]))
+                    .into(),
+                    "Public address of your server, useful for local connections. Used only to build the cover image link sent to Discord. Leave empty to use the server address you connect with.",
+                ),
+            ],
+        )
     }
 
     fn group<'a>(

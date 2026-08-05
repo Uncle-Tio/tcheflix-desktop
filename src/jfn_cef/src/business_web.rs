@@ -41,6 +41,8 @@ struct MediaMetadata {
     track_number: i32,
     duration_us: i64,
     media_type: u8,
+    community_rating: f64,
+    production_year: i32,
 }
 
 /// Whether the window was already fullscreen when jellyfin-web raised the video
@@ -95,6 +97,12 @@ fn parse_metadata_json(json: &str) -> MediaMetadata {
             .unwrap_or(0.0);
         out.duration_us = ticks as i64 / 10;
     }
+    if let Some(n) = d.get("CommunityRating").and_then(Value::as_f64) {
+        out.community_rating = n;
+    }
+    if let Some(n) = d.get("ProductionYear").and_then(Value::as_i64) {
+        out.production_year = n as i32;
+    }
     out.media_type = match get_str("Type").as_str() {
         "Audio" => MT_AUDIO,
         "Movie" | "Episode" | "Video" | "MusicVideo" => MT_VIDEO,
@@ -122,6 +130,8 @@ fn post_metadata(meta: &MediaMetadata) {
         art_url: String::new(),
         art_data_uri: String::new(),
         media_type: media_type_to_pb(meta.media_type),
+        community_rating: meta.community_rating,
+        production_year: meta.production_year,
     }));
 }
 
