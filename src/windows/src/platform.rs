@@ -22,12 +22,12 @@ use windows::Win32::UI::WindowsAndMessaging::{
 };
 
 use jfn_mpv::api::{
-    jfn_mpv_set_fullscreen, jfn_mpv_set_window_maximized, jfn_mpv_set_window_minimized,
-    jfn_mpv_toggle_fullscreen,
+    jfn_mpv_get_property_int, jfn_mpv_set_fullscreen, jfn_mpv_set_window_maximized,
+    jfn_mpv_set_window_minimized, jfn_mpv_toggle_fullscreen,
 };
 use jfn_mpv::boot::jfn_mpv_handle_get;
 use jfn_platform_abi::geometry::{Bounds, WindowGeometry, clamp_to_bounds};
-use jfn_playback::shutdown::jfn_shutdown_initiate;
+use jfn_playback::shutdown::{jfn_shutdown_initiate, jfn_shutting_down};
 
 use crate::input::{
     jfn_input_windows_resize_to_parent, jfn_input_windows_run_input_thread,
@@ -66,9 +66,10 @@ pub(crate) fn win_hwnd() -> Option<HWND> {
     (raw != 0).then(|| hwnd_from_raw(raw))
 }
 
-/// The stored HWND, taken from mpv's observed `window-id` on first use. The
-/// boot wait pulls the window snapshot before `win_init` runs, so resolution
-/// cannot wait for init. `None` until mpv's VO has a window.
+/// The stored HWND, taken from mpv's observed `window-id` on first use.
+/// `None` until mpv's VO has a window and the boot wait has observed it;
+/// `win_init`, which runs before that wait, resolves it through
+/// [`win_wait_for_hwnd`] instead.
 ///
 /// Reads a cached atomic — no mpv property read, so no thread that pulls the
 /// snapshot can serialize against the mpv core or mpv's VO GUI thread.
@@ -82,6 +83,44 @@ pub(crate) fn win_ensure_hwnd() -> Option<HWND> {
     }
     STATE.lock().mpv_hwnd_raw = raw;
     Some(hwnd_from_raw(raw))
+}
+
+/// How long [`win_wait_for_hwnd`] waits for mpv's window, and how often it
+/// looks. Values from the Tchê Flix startup-HWND patch note (upstream #694).
+const HWND_WAIT_LIMIT: std::time::Duration = std::time::Duration::from_secs(20);
+const HWND_WAIT_POLL: std::time::Duration = std::time::Duration::from_millis(10);
+
+/// mpv's HWND for `win_init`, waiting for mpv's VO to create it.
+///
+/// Platform init now precedes the boot wait, which alone drains the mpv events
+/// that feed [`win_ensure_hwnd`]'s atomic, so this falls back to reading
+/// `window-id` directly. That synchronous read is safe here and only here: the
+/// main thread, inside `win_init`, before the wndproc hook, the notifier and
+/// the input thread exist. It does not pump mpv's event queue, which would
+/// steal replies the boot wait is waiting for. Seeds the cache so every later
+/// [`win_hwnd`] caller hits it.
+fn win_wait_for_hwnd() -> Option<HWND> {
+    let start = std::time::Instant::now();
+    loop {
+        if let Some(hwnd) = win_ensure_hwnd() {
+            return Some(hwnd);
+        }
+        let mut wid: i64 = 0;
+        let rc = unsafe { jfn_mpv_get_property_int(c"window-id".as_ptr(), &mut wid) };
+        if rc >= 0 && wid != 0 {
+            let raw = wid as usize;
+            STATE.lock().mpv_hwnd_raw = raw;
+            tracing::info!(
+                "mpv window-id resolved after {} ms",
+                start.elapsed().as_millis()
+            );
+            return Some(hwnd_from_raw(raw));
+        }
+        if jfn_shutting_down() || start.elapsed() >= HWND_WAIT_LIMIT {
+            return None;
+        }
+        std::thread::sleep(HWND_WAIT_POLL);
+    }
 }
 
 /// True when mpv's window has neither `WS_CAPTION` nor `WS_THICKFRAME`.
@@ -197,7 +236,7 @@ unsafe extern "system" fn mpv_wndproc_hook(n_code: c_int, wp: WPARAM, lp: LPARAM
 pub(crate) fn win_early_init() {}
 
 pub(crate) fn win_init(_mpv: *mut c_void) -> Result<(), jfn_platform_abi::PlatformInitError> {
-    let Some(hwnd) = win_ensure_hwnd() else {
+    let Some(hwnd) = win_wait_for_hwnd() else {
         return Err(jfn_platform_abi::PlatformInitError::backend(
             "Windows window acquisition",
             "no observed mpv window-id",
