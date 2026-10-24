@@ -10,6 +10,13 @@ pub fn get(name: &str) -> Option<&'static str> {
         "select-menu.js" => include_str!("../../web/select-menu.js"),
         "subtitle-style.js" => include_str!("../../web/subtitle-style.js"),
         "update.js" => include_str!("../../web/update.js"),
+        // Tchê Flix: the translation tables ride in front of the script.
+        "i18n.js" => concat!(
+            "window.__jmpI18nTables = {\"pt-br\": ",
+            include_str!("../../web/i18n/pt-BR.json"),
+            "};\n",
+            include_str!("../../web/i18n.js")
+        ),
         _ => return None,
     })
 }

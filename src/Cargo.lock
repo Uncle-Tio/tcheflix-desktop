@@ -2983,6 +2983,7 @@ dependencies = [
  "png",
  "serde",
  "serde_json",
+ "sys-locale",
  "tcheflix",
  "thiserror 2.0.21",
  "tokio",

@@ -1155,7 +1155,8 @@ pub fn strings() -> &'static Strings {
 }
 
 /// `LC_ALL`, `LC_MESSAGES`, `LANG`, lowercased, `_` folded to `-`, encoding and
-/// modifier suffixes stripped; [`FALLBACK_LANGUAGE`] when none is set.
+/// modifier suffixes stripped; the OS language when none is set, and
+/// [`FALLBACK_LANGUAGE`] when that is unknown too.
 pub fn system_locale() -> String {
     for key in ["LC_ALL", "LC_MESSAGES", "LANG"] {
         let Ok(raw) = std::env::var(key) else {
@@ -1168,7 +1169,8 @@ pub fn system_locale() -> String {
         }
         return trimmed.to_lowercase().replace('_', "-");
     }
-    FALLBACK_LANGUAGE.to_owned()
+    // Tchê Flix: Windows sets none of those variables; ask the OS instead.
+    crate::i18n::os_locale().unwrap_or_else(|| FALLBACK_LANGUAGE.to_owned())
 }
 
 #[cfg(test)]

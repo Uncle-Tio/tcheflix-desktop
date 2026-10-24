@@ -138,6 +138,7 @@ impl NativeFunction {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum InjectedScript {
     NativeShim,
+    I18n,
     MpvPlayerBase,
     MpvVideoPlayer,
     MpvAudioPlayer,
@@ -151,6 +152,7 @@ impl InjectedScript {
     fn from_name(name: &str) -> Option<Self> {
         Some(match name {
             "native-shim.js" => Self::NativeShim,
+            "i18n.js" => Self::I18n,
             "mpv-player-base.js" => Self::MpvPlayerBase,
             "mpv-video-player.js" => Self::MpvVideoPlayer,
             "mpv-audio-player.js" => Self::MpvAudioPlayer,
@@ -165,6 +167,7 @@ impl InjectedScript {
     pub(crate) fn file_name(self) -> &'static str {
         match self {
             Self::NativeShim => "native-shim.js",
+            Self::I18n => "i18n.js",
             Self::MpvPlayerBase => "mpv-player-base.js",
             Self::MpvVideoPlayer => "mpv-video-player.js",
             Self::MpvAudioPlayer => "mpv-audio-player.js",
@@ -221,6 +224,7 @@ const WEB_FUNCTIONS: &[NativeFunction] = &[
 
 const WEB_SCRIPTS: &[InjectedScript] = &[
     InjectedScript::NativeShim,
+    InjectedScript::I18n,
     InjectedScript::MpvPlayerBase,
     InjectedScript::MpvVideoPlayer,
     InjectedScript::MpvAudioPlayer,

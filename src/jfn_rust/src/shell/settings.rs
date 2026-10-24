@@ -5,6 +5,7 @@ use iced_core::{Element, Length, Padding};
 use iced_widget::{button, checkbox, column, scrollable, text};
 use jfn_platform_abi::{DisplayBackend, WindowDecorations};
 
+use crate::i18n::tr;
 use crate::shell::controls;
 use crate::shell::theme::{self, Theme};
 
@@ -108,7 +109,7 @@ impl Settings {
         let log_level = jfn_config::log_level();
 
         let mut controls = column![
-            text("Changes take effect after restarting the application.").class(Some(theme::MUTED)),
+            text(tr("Changes take effect after restarting the application.")).class(Some(theme::MUTED)),
             self.group(SECTION_TITLES[0], column![self.selection(
                 "Hardware Decoding",
                 controls::select(
@@ -388,7 +389,7 @@ impl Settings {
                     "Cover Art URL",
                     crate::shell::field::field(
                         DISCORD_IMAGE_BASE_FIELD,
-                        "e.g. https://jellyfin.example.com",
+                        tr("e.g. https://jellyfin.example.com"),
                         &self.discord_image_base,
                     )
                     .on_input(Message::DiscordImageBaseEdited)
@@ -407,7 +408,7 @@ impl Settings {
         title: &'a str,
         controls: iced_widget::Column<'a, Message, Theme, iced_wgpu::Renderer>,
     ) -> Element<'a, Message, Theme, iced_wgpu::Renderer> {
-        column![text(title).size(20), controls.spacing(16)]
+        column![text(tr(title)).size(20), controls.spacing(16)]
             .spacing(10)
             .into()
     }
@@ -419,9 +420,9 @@ impl Settings {
         help: &'a str,
     ) -> Element<'a, Message, Theme, iced_wgpu::Renderer> {
         column![
-            text(label),
+            text(tr(label)),
             control,
-            text(help).size(13).class(Some(theme::MUTED))
+            text(tr(help)).size(13).class(Some(theme::MUTED))
         ]
         .spacing(5)
         .into()
@@ -447,10 +448,10 @@ impl Settings {
         column![
             controls::action(
                 id,
-                checkbox(value).label(label).on_toggle(changed),
+                checkbox(value).label(tr(label)).on_toggle(changed),
                 changed(!value),
             ),
-            text(help).size(13).class(Some(theme::MUTED)),
+            text(tr(help)).size(13).class(Some(theme::MUTED)),
         ]
         .spacing(5)
         .into()
@@ -462,7 +463,11 @@ impl Settings {
         label: &'a str,
         message: Message,
     ) -> Element<'a, Message, Theme, iced_wgpu::Renderer> {
-        controls::action(id, button(text(label)).on_press(message.clone()), message)
+        controls::action(
+            id,
+            button(text(tr(label))).on_press(message.clone()),
+            message,
+        )
     }
 }
 
@@ -506,35 +511,35 @@ fn control_order(display: DisplayBackend, decorations: bool, server: bool) -> Ve
 }
 
 fn audio_channel_label(value: &str) -> String {
-    match value {
+    tr(match value {
         "" => "Auto",
         "stereo" => "Stereo",
         "5.1" => "5.1 Surround",
         "7.1" => "7.1 Surround",
         value => value,
-    }
+    })
     .to_owned()
 }
 
 fn log_level_label(value: &str) -> String {
-    match value {
+    tr(match value {
         "" => "Default (Info)",
         "verbose" => "Verbose",
         "debug" => "Debug",
         "warn" => "Warning",
         "error" => "Error",
         value => value,
-    }
+    })
     .to_owned()
 }
 
 fn decoration_label(value: &Option<WindowDecorations>) -> String {
-    match value {
+    tr(match value {
         None => "Auto",
         Some(WindowDecorations::Csd) => "In-app (client-side)",
         Some(WindowDecorations::Server) => "System (server-side)",
         Some(WindowDecorations::ServerThemed) => "System, themed (KDE)",
-    }
+    })
     .to_owned()
 }
 

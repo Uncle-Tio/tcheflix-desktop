@@ -152,14 +152,14 @@ impl SettingsOverlay {
     pub fn view(&self) -> Element<'_, Message, Theme, iced_wgpu::Renderer> {
         let settings_tab = controls::tab(
             SETTINGS_TAB_CONTROL,
-            button(text(settings::TITLE))
+            button(text(crate::i18n::tr(settings::TITLE)))
                 .on_press(Message::Select(Tab::Settings))
                 .class(tab_class(self.active == Tab::Settings)),
             Message::Select(Tab::Settings),
         );
         let about_tab = controls::tab(
             ABOUT_TAB_CONTROL,
-            button(text("About"))
+            button(text(crate::i18n::tr("About")))
                 .on_press(Message::Select(Tab::About))
                 .class(tab_class(self.active == Tab::About)),
             Message::Select(Tab::About),

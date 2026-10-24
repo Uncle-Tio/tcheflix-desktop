@@ -82,7 +82,10 @@ impl About {
             }
             None => wrapped(value).into(),
         };
-        metadata_row(wrapped(label).class(Some(theme::MUTED)), value)
+        metadata_row(
+            wrapped(crate::i18n::tr(label)).class(Some(theme::MUTED)),
+            value,
+        )
     }
 
     /// Opens the row's path through `Platform::open_path`.
