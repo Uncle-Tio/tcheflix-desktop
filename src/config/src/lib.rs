@@ -960,6 +960,12 @@ mod tests {
     }
 
     #[test]
+    fn saved_hwdec_survives_a_reload() {
+        let data = loaded(r#"{"hwdec":"vulkan"}"#);
+        assert_eq!(data.hwdec.as_str(), "vulkan");
+    }
+
+    #[test]
     fn unknown_keys_and_unknown_decorations_are_ignored() {
         let data = loaded(r#"{"nope":1,"windowDecorations":"fancy","serverUrl":"u"}"#);
         assert_eq!(data.window_decorations, None);

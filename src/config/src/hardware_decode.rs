@@ -52,7 +52,7 @@ impl serde::Serialize for Hwdec {
 
 impl<'de> serde::Deserialize<'de> for Hwdec {
     fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let value = <&str>::deserialize(deserializer)?;
+        let value = String::deserialize(deserializer)?;
         value.parse().map_err(serde::de::Error::custom)
     }
 }
