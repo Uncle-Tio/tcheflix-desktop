@@ -859,7 +859,7 @@ mod tests {
     fn every_key_writes_in_schema_order() {
         let data = SettingsData {
             server_url: "http://host".into(),
-            hwdec: "auto".parse().expect("auto is offered everywhere"),
+            hwdec: "no".parse().expect("no is offered everywhere"),
             audio_passthrough: "eac3".into(),
             audio_channels: "stereo".into(),
             log_level: "debug".into(),

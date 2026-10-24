@@ -1,6 +1,8 @@
 //! Hwdec mode policy: which mpv hardware-decode backends each OS offers.
 
-pub const HWDEC_DEFAULT: &str = "no";
+// Tchê Flix: hardware decoding on by default (mpv's own default is "no").
+// On Windows "auto" lands on d3d11va, the path paired with the D3D11 renderer.
+pub const HWDEC_DEFAULT: &str = "auto";
 
 #[expect(
     dead_code,
@@ -91,11 +93,12 @@ mod tests {
         assert_eq!(HWDEC_DEFAULT.parse::<Hwdec>().ok(), Some(Hwdec::default()));
     }
 
-    /// mpv's documented `--hwdec` default: "no: always use software decoding
-    /// (default)". The settings view shows this value for an unset setting.
+    /// Tchê Flix defaults to hardware decoding, unlike mpv's documented
+    /// `--hwdec` default ("no"). The settings view shows this value for an
+    /// unset setting.
     #[test]
-    fn default_is_mpv_software_decoding() {
-        assert_eq!(Hwdec::default().as_str(), "no");
+    fn default_is_auto_hardware_decoding() {
+        assert_eq!(Hwdec::default().as_str(), "auto");
     }
 
     #[test]

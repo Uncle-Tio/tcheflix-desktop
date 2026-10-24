@@ -187,7 +187,7 @@ fn resolve_startup_options(cli: &cli::Cli) -> StartupOptions {
     let saved_log_level = jfn_config::log_level();
     let saved_audio_exclusive = jfn_config::audio_exclusive();
 
-    // An unknown CLI value falls back to the mpv default.
+    // An unknown CLI value falls back to the default mode.
     let hwdec = match cli.hwdec.as_deref() {
         Some(value) => value.parse::<jfn_config::Hwdec>().unwrap_or_default(),
         None => saved_hwdec,
