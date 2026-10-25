@@ -4820,7 +4820,7 @@ checksum = "876fef147edbcbddc8ac5cbbba92c7b86519e314e86638596c09673b2ed01e7f"
 
 [[package]]
 name = "tcheflix"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "jfn-paths",
  "semver",
