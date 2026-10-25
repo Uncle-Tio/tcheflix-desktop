@@ -296,7 +296,7 @@ impl Platform for WindowsPlatform {
     fn menu_delivery(&self, kind: MenuKind) -> MenuDelivery<'_> {
         match kind {
             MenuKind::ContextMenu => MenuDelivery::Host(&crate::menu::WinMenuHost),
-            MenuKind::Dropdown => MenuDelivery::Composited,
+            MenuKind::Dropdown => MenuDelivery::Page,
         }
     }
 
